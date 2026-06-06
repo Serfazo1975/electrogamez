@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("technician") // "admin" | "technician"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repairs   Repair[]
+
+  @@map("users")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String   @unique
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repairs   Repair[]
+
+  @@map("clients")
+}
+
+model Repair {
+  id          String   @id @default(cuid())
+  ticketNumber String  @unique
+  deviceType  String   // "PC" | "Laptop" | "PlayStation" | "Otro"
+  deviceBrand String
+  deviceModel String?
+  serialNumber String?
+  issue       String
+  diagnosis   String?
+  resolution  String?
+  status      String   @default("received") // "received" | "diagnosing" | "waiting_parts" | "in_progress" | "ready" | "delivered" | "cancelled"
+  priority    String   @default("medium") // "low" | "medium" | "high" | "urgent"
+  estimatedCost Float?
+  finalCost   Float?
+  estimatedDelivery DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+
+  technicianId String?
+  technician   User?   @relation(fields: [technicianId], references: [id])
+
+  partsUsed   RepairPart[]
+
+  @@map("repairs")
+}
+
+model Part {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String?
+  model       String?
+  sku         String?  @unique
+  stock       Int      @default(0)
+  minStock    Int      @default(2)
+  cost        Float
+  price       Float
+  supplier    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  repairParts RepairPart[]
+
+  @@map("parts")
+}
+
+model RepairPart {
+  id       String @id @default(cuid())
+  quantity Int    @default(1)
+  unitCost Float
+
+  repairId String
+  repair   Repair @relation(fields: [repairId], references: [id], onDelete: Cascade)
+
+  partId   String
+  part     Part   @relation(fields: [partId], references: [id])
+
+  @@map("repair_parts")
+}
