@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Usuarios del sistema (técnicos / admin) ─────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("technician") // "admin" | "technician"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repairs   Repair[]
+}
+
+// ─── Clientes ─────────────────────────────────────────────────────────────────
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String   @unique
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  repairs   Repair[]
+}
+
+// ─── Reparaciones ─────────────────────────────────────────────────────────────
+
+model Repair {
+  id           String    @id @default(cuid())
+  // Código público que el cliente usa para trackear (ej: EG-2025-0042)
+  trackingCode String    @unique @default(cuid())
+
+  // Relaciones
+  clientId     String
+  client       Client    @relation(fields: [clientId], references: [id])
+  technicianId String?
+  technician   User?     @relation(fields: [technicianId], references: [id])
+
+  // Dispositivo
+  deviceType   String    // "pc" | "laptop" | "playstation" | "other"
+  deviceBrand  String?
+  deviceModel  String?
+  serialNumber String?
+
+  // Problema
+  issueDescription String
+  diagnosis        String?
+  resolution       String?
+
+  // Estado y prioridad
+  // status: "received" | "diagnosing" | "waiting_parts" | "in_progress" | "ready" | "delivered" | "cancelled"
+  status    String   @default("received")
+  priority  String   @default("medium") // "low" | "medium" | "high"
+
+  // Económico
+  estimatedCost Float?
+  finalCost     Float?
+  paid          Boolean @default(false)
+
+  // Fechas
+  receivedAt   DateTime  @default(now())
+  estimatedAt  DateTime?
+  completedAt  DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Repuestos usados
+  partsUsed    RepairPart[]
+  // Historial de cambios de estado
+  statusHistory RepairStatusHistory[]
+  // Notificaciones enviadas
+  notifications Notification[]
+}
+
+// ─── Historial de estados (auditoría) ────────────────────────────────────────
+
+model RepairStatusHistory {
+  id        String   @id @default(cuid())
+  repairId  String
+  repair    Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+// ─── Inventario de repuestos ──────────────────────────────────────────────────
+
+model Part {
+  id           String  @id @default(cuid())
+  name         String
+  sku          String? @unique
+  brand        String?
+  model        String?
+  supplier     String?
+  stock        Int     @default(0)
+  minStock     Int     @default(2)  // alerta de stock bajo
+  costPrice    Float?
+  salePrice    Float?
+  description  String?
+  active       Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  usedInRepairs RepairPart[]
+}
+
+// ─── Repuestos usados en una reparación ──────────────────────────────────────
+
+model RepairPart {
+  id       String @id @default(cuid())
+  repairId String
+  repair   Repair @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  partId   String
+  part     Part   @relation(fields: [partId], references: [id])
+  quantity Int    @default(1)
+  unitCost Float?
+}
+
+// ─── Notificaciones enviadas ──────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  repairId  String
+  repair    Repair   @relation(fields: [repairId], references: [id], onDelete: Cascade)
+  channel   String   // "email" | "whatsapp" | "sms"
+  type      String   // "received" | "in_progress" | "ready" | "reminder"
+  recipient String
+  status    String   @default("pending") // "pending" | "sent" | "failed"
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime @default(now())
+}
