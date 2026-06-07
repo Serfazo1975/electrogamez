@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 
 const STATUS_LABELS: Record<string, string> = {
   received:      'Recibido',
@@ -27,38 +26,55 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Código requerido' }, { status: 400 })
   }
 
-  const repair = await prisma.repair.findUnique({
-    where: { trackingCode: code.toUpperCase() },
-    select: {
-      trackingCode: true,
-      deviceType: true,
-      deviceBrand: true,
-      deviceModel: true,
-      issueDescription: true,
-      status: true,
-      priority: true,
-      estimatedCost: true,
-      finalCost: true,
-      paid: true,
-      receivedAt: true,
-      estimatedAt: true,
-      completedAt: true,
-      client: { select: { name: true } },
-      statusHistory: {
-        orderBy: { createdAt: 'asc' },
-        select: { status: true, note: true, createdAt: true },
-      },
-    },
-  })
-
-  if (!repair) {
-    return NextResponse.json({ error: 'Reparación no encontrada' }, { status: 404 })
+  // Si no hay DATABASE_URL configurada, avisar claramente
+  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('file:')) {
+    return NextResponse.json(
+      { error: 'Base de datos no configurada. Contactate con nosotros por WhatsApp.' },
+      { status: 503 }
+    )
   }
 
-  return NextResponse.json({
-    ...repair,
-    statusLabel: STATUS_LABELS[repair.status] ?? repair.status,
-    statusOrder: STATUS_ORDER,
-    statusLabels: STATUS_LABELS,
-  })
+  try {
+    const { prisma } = await import('@/lib/prisma')
+
+    const repair = await prisma.repair.findUnique({
+      where: { trackingCode: code.toUpperCase() },
+      select: {
+        trackingCode: true,
+        deviceType: true,
+        deviceBrand: true,
+        deviceModel: true,
+        issueDescription: true,
+        status: true,
+        priority: true,
+        estimatedCost: true,
+        finalCost: true,
+        paid: true,
+        receivedAt: true,
+        estimatedAt: true,
+        completedAt: true,
+        client: { select: { name: true } },
+        statusHistory: {
+          orderBy: { createdAt: 'asc' },
+          select: { status: true, note: true, createdAt: true },
+        },
+      },
+    })
+
+    if (!repair) {
+      return NextResponse.json({ error: 'Reparación no encontrada' }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      ...repair,
+      statusLabel: STATUS_LABELS[repair.status] ?? repair.status,
+      statusOrder: STATUS_ORDER,
+      statusLabels: STATUS_LABELS,
+    })
+  } catch {
+    return NextResponse.json(
+      { error: 'Error al buscar la reparación. Intentá nuevamente.' },
+      { status: 500 }
+    )
+  }
 }
