@@ -5,8 +5,10 @@ import {
   LayoutDashboard, Wrench, Users, Package, LogOut,
   Plus, Search, Filter, MoreVertical, TrendingUp,
   Clock, CheckCircle2, AlertCircle, Gamepad2, Monitor,
-  Laptop, ChevronRight, Bell, Settings, Menu, X
+  Laptop, ChevronRight, Bell, Settings, Menu, X,
+  FileText, Receipt
 } from 'lucide-react'
+import Documento, { DocData } from './Documento'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -120,6 +122,28 @@ export default function DashboardPage() {
   const [showNewRepair,  setShowNewRepair]  = useState(false)
   const [showNewClient,  setShowNewClient]  = useState(false)
   const [showNewPart,    setShowNewPart]    = useState(false)
+
+  // Documento (presupuesto / factura C)
+  const [doc, setDoc] = useState<DocData | null>(null)
+
+  function openDoc(tipo: 'presupuesto' | 'factura', r: Repair) {
+    const cliente = clients.find(c => c.name === r.client)
+    const costNum = r.cost ? parseInt(r.cost.replace(/\D/g, '')) || 0 : 0
+    const prefix = tipo === 'factura' ? 'FC-C' : 'PRE'
+    const numero = `${prefix}-${r.code.split('-').slice(1).join('-')}`
+    setDoc({
+      tipo,
+      numero,
+      fecha: today(),
+      cliente: r.client,
+      telefono: cliente?.phone,
+      email: cliente?.email,
+      items: [{ desc: `Reparación ${r.device} — ${r.issue}`, qty: 1, price: costNum }],
+      notas: tipo === 'presupuesto'
+        ? 'Presupuesto válido por 7 días. No incluye repuestos no detallados.'
+        : 'Garantía 30 días sobre el trabajo realizado.',
+    })
+  }
 
   // Formulario nueva reparación
   const [repairForm, setRepairForm] = useState({ client: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
@@ -370,7 +394,16 @@ export default function DashboardPage() {
                           <td className="px-5 py-4 text-gray-300 hidden lg:table-cell">{r.cost ?? <span className="text-gray-600">Por definir</span>}</td>
                           <td className="px-5 py-4 text-gray-400 text-xs hidden md:table-cell">{r.date}</td>
                           <td className="px-5 py-4">
-                            <button className="text-gray-500 hover:text-gray-300 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                            <div className="flex items-center gap-1 justify-end">
+                              <button onClick={() => openDoc('presupuesto', r)} title="Presupuesto"
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/30 transition-colors">
+                                <FileText className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => openDoc('factura', r)} title="Factura C"
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-900/30 transition-colors">
+                                <Receipt className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -609,6 +642,9 @@ export default function DashboardPage() {
           </form>
         </Modal>
       )}
+
+      {/* ── DOCUMENTO (presupuesto / factura C) ── */}
+      {doc && <Documento data={doc} onClose={() => setDoc(null)} />}
 
     </div>
   )
