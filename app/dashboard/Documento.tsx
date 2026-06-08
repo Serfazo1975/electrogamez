@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Printer, MessageCircle, FileText, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { X, Download, MessageCircle, FileText, Plus, Loader2 } from 'lucide-react'
 
 const NEG = {
   razonSocial:  'ELECTROGAMEZ SERVICIO TECNICO RG',
@@ -77,6 +77,7 @@ const inp = 'bg-transparent focus:outline-none border-b border-dashed border-gra
 
 export default function Documento({ data, onClose }: { data: DocData; onClose: () => void }) {
   const [doc, setDoc] = useState<DocData>(data)
+  const [busy, setBusy] = useState<'pdf' | 'wa' | null>(null)
   const esF = doc.tipo === 'factura'
 
   const subtotal = doc.items.reduce((s, i) => {
@@ -84,27 +85,114 @@ export default function Documento({ data, onClose }: { data: DocData; onClose: (
     return s + i.price * i.qty * (1 - b)
   }, 0)
 
-  useEffect(() => {
-    const el = document.createElement('style')
-    el.id = '__dp__'
-    el.textContent = `@media print {
-      body>*{display:none!important}
-      #doc-print{display:block!important;position:fixed;inset:0;overflow:auto;background:#fff;padding:0}
-      .no-print{display:none!important}
-    }`
-    document.head.appendChild(el)
-    return () => document.getElementById('__dp__')?.remove()
-  }, [])
+  const fileName = `${esF ? 'FacturaC' : 'Presupuesto'}-${doc.numero.replace(/[^\w-]/g, '')}.pdf`
 
   const upd = <K extends keyof DocData>(k: K, v: DocData[K]) =>
     setDoc(d => ({ ...d, [k]: v }))
   const updItem = (idx: number, p: Partial<DocItem>) =>
     setDoc(d => ({ ...d, items: d.items.map((it, i) => i === idx ? { ...it, ...p } : it) }))
 
-  const sendWA = () => {
+  // Genera el PDF capturando el documento. Reemplaza inputs por texto plano
+  // para que se vea limpio y en una sola página.
+  async function buildPdf() {
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import('html2canvas'),
+      import('jspdf'),
+    ])
+    const el = document.getElementById('doc-print')!
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      windowWidth: el.scrollWidth,
+      onclone: (cloned) => {
+        const root = cloned.getElementById('doc-print') as HTMLElement
+        root.querySelectorAll('.no-print').forEach(n => ((n as HTMLElement).style.display = 'none'))
+        const flatten = (node: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, txt: string) => {
+          const cs = cloned.defaultView!.getComputedStyle(node)
+          const span = cloned.createElement('span')
+          span.textContent = txt
+          span.style.fontSize = cs.fontSize
+          span.style.fontWeight = cs.fontWeight
+          span.style.textAlign = cs.textAlign
+          span.style.color = '#000'
+          span.style.fontFamily = cs.fontFamily
+          span.style.display = 'inline-block'
+          span.style.minWidth = cs.width
+          span.style.whiteSpace = 'pre-wrap'
+          span.style.verticalAlign = 'bottom'
+          node.parentNode?.replaceChild(span, node)
+        }
+        root.querySelectorAll('input').forEach(n =>
+          flatten(n as HTMLInputElement, (n as HTMLInputElement).value || ''))
+        root.querySelectorAll('textarea').forEach(n =>
+          flatten(n as HTMLTextAreaElement, (n as HTMLTextAreaElement).value || ''))
+        root.querySelectorAll('select').forEach(n => {
+          const sel = n as HTMLSelectElement
+          flatten(sel, sel.options[sel.selectedIndex]?.text || '')
+        })
+      },
+    })
+
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4' })
+    const pageW = pdf.internal.pageSize.getWidth()
+    const pageH = pdf.internal.pageSize.getHeight()
+    const margin = 8
+    const imgW = pageW - margin * 2
+    const imgH = (canvas.height * imgW) / canvas.width
+    const img = canvas.toDataURL('image/jpeg', 0.95)
+
+    let heightLeft = imgH
+    let position = margin
+    pdf.addImage(img, 'JPEG', margin, position, imgW, imgH)
+    heightLeft -= (pageH - margin * 2)
+    while (heightLeft > 0) {
+      position = margin - (imgH - heightLeft)
+      pdf.addPage()
+      pdf.addImage(img, 'JPEG', margin, position, imgW, imgH)
+      heightLeft -= (pageH - margin * 2)
+    }
+    return pdf
+  }
+
+  async function downloadPdf() {
+    setBusy('pdf')
+    try {
+      const pdf = await buildPdf()
+      pdf.save(fileName)
+    } catch {
+      alert('No se pudo generar el PDF. Intentá de nuevo.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function sendWA() {
+    setBusy('wa')
+    const text = whatsappText(doc, subtotal)
     const tel = (doc.telefono ?? '').replace(/\D/g, '')
-    const txt = encodeURIComponent(whatsappText(doc, subtotal))
-    window.open(tel ? `https://wa.me/${tel}?text=${txt}` : `https://wa.me/?text=${txt}`, '_blank')
+    const waUrl = tel
+      ? `https://wa.me/${tel}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`
+    try {
+      const pdf = await buildPdf()
+      const blob = pdf.output('blob')
+      const file = new File([blob], fileName, { type: 'application/pdf' })
+
+      // En el celular: menú nativo para compartir el PDF directo a WhatsApp
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean }
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], text, title: fileName } as ShareData)
+        return
+      }
+      // En la computadora: descargo el PDF y abro WhatsApp con el texto
+      pdf.save(fileName)
+      window.open(waUrl, '_blank')
+      alert('Se descargó el PDF. Adjuntalo en el chat de WhatsApp que se abrió (ícono del clip 📎).')
+    } catch {
+      window.open(waUrl, '_blank')
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
@@ -116,13 +204,15 @@ export default function Documento({ data, onClose }: { data: DocData; onClose: (
           <FileText className="w-4 h-4 text-blue-400" />
           {esF ? 'Factura C' : 'Presupuesto'}
         </span>
-        <button onClick={() => window.print()}
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
-          <Printer className="w-4 h-4" /> Imprimir / PDF
+        <button onClick={downloadPdf} disabled={busy !== null}
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+          {busy === 'pdf' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          Descargar PDF
         </button>
-        <button onClick={sendWA}
-          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
-          <MessageCircle className="w-4 h-4" /> WhatsApp
+        <button onClick={sendWA} disabled={busy !== null}
+          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-60 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+          {busy === 'wa' ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+          WhatsApp PDF
         </button>
         <button onClick={onClose} className="ml-1 text-gray-400 hover:text-white transition-colors">
           <X className="w-5 h-5" />
