@@ -6,9 +6,10 @@ import {
   Plus, Search, Filter, MoreVertical, TrendingUp,
   Clock, CheckCircle2, AlertCircle, Gamepad2, Monitor,
   Laptop, ChevronRight, Bell, Settings, Menu, X,
-  FileText, Receipt
+  FileText, Receipt, ClipboardList
 } from 'lucide-react'
 import Documento, { DocData } from './Documento'
+import Comprobante, { ReceiptData } from './Comprobante'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -186,7 +187,10 @@ export default function DashboardPage() {
   }
 
   // Formulario nueva reparación
-  const [repairForm, setRepairForm] = useState({ client: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
+  const [repairForm, setRepairForm] = useState({ client: '', phone: '', email: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
+
+  // Comprobante de recepción (se muestra al crear una reparación)
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null)
 
   // Formulario nuevo cliente
   const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '' })
@@ -222,17 +226,50 @@ export default function DashboardPage() {
       date: today(),
       cost: repairForm.cost ? `$${repairForm.cost}` : null,
     }
+    let saved: Repair = local
     try {
-      const created = dbOn ? await apiJSON('POST', '/api/repairs', repairForm) : local
-      setRepairs(prev => [created, ...prev])
+      saved = dbOn ? await apiJSON('POST', '/api/repairs', repairForm) : local
+      setRepairs(prev => [saved, ...prev])
     } catch {
       setRepairs(prev => [local, ...prev])
     } finally {
       setSaving(false)
     }
-    setRepairForm({ client: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
+    // Mostrar comprobante de recepción con el código generado
+    setReceipt({
+      code: saved.code,
+      fecha: saved.date,
+      cliente: repairForm.client,
+      telefono: repairForm.phone || undefined,
+      email: repairForm.email || undefined,
+      deviceType: repairForm.deviceType,
+      deviceBrand: repairForm.deviceBrand,
+      deviceModel: repairForm.deviceModel,
+      issue: repairForm.issue,
+      priority: repairForm.priority,
+      cost: saved.cost,
+    })
+    setRepairForm({ client: '', phone: '', email: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
     setShowNewRepair(false)
     setTab('reparaciones')
+  }
+
+  // Reabrir el comprobante de recepción de una reparación existente
+  function openReceipt(r: Repair) {
+    const cliente = clients.find(c => c.name === r.client)
+    setReceipt({
+      code: r.code,
+      fecha: r.date,
+      cliente: r.client,
+      telefono: cliente?.phone || undefined,
+      email: cliente?.email || undefined,
+      deviceType: r.type,
+      deviceBrand: r.device,
+      deviceModel: '',
+      issue: r.issue,
+      priority: r.priority,
+      cost: r.cost,
+    })
   }
 
   async function submitClient(e: React.FormEvent) {
@@ -496,6 +533,10 @@ export default function DashboardPage() {
                           <td className="px-5 py-4 text-gray-400 text-xs hidden md:table-cell">{r.date}</td>
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-1 justify-end">
+                              <button onClick={() => openReceipt(r)} title="Comprobante de recepción"
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/30 transition-colors">
+                                <ClipboardList className="w-4 h-4" />
+                              </button>
                               <button onClick={() => openDoc('presupuesto', r)} title="Presupuesto"
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/30 transition-colors">
                                 <FileText className="w-4 h-4" />
@@ -626,6 +667,16 @@ export default function DashboardPage() {
                 placeholder="Nombre del cliente" className={inputCls} />
             </Field>
             <div className="grid grid-cols-2 gap-4">
+              <Field label="Teléfono / WhatsApp">
+                <input value={repairForm.phone} onChange={e => setRepairForm(f => ({ ...f, phone: e.target.value }))}
+                  placeholder="+54 9 11 XXXX XXXX" className={inputCls} />
+              </Field>
+              <Field label="Email">
+                <input type="email" value={repairForm.email} onChange={e => setRepairForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="cliente@email.com" className={inputCls} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <Field label="Tipo de equipo">
                 <select value={repairForm.deviceType} onChange={e => setRepairForm(f => ({ ...f, deviceType: e.target.value }))} className={selectCls}>
                   <option value="laptop">Laptop</option>
@@ -746,6 +797,9 @@ export default function DashboardPage() {
 
       {/* ── DOCUMENTO (presupuesto / factura C) ── */}
       {doc && <Documento data={doc} onClose={() => setDoc(null)} />}
+
+      {/* ── COMPROBANTE DE RECEPCIÓN ── */}
+      {receipt && <Comprobante data={receipt} onClose={() => setReceipt(null)} />}
 
       {/* Overlay para cerrar el dropdown de estado */}
       {statusDropdown && (

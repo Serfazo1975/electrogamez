@@ -53,13 +53,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const name = (body.client ?? '').trim() || 'Sin nombre'
     const phone = body.phone ? String(body.phone).trim() : null
+    const email = body.email ? String(body.email).trim() : null
 
     // Buscar cliente existente por teléfono o por nombre; si no, crearlo.
     let client =
       (phone ? await prisma.client.findFirst({ where: { phone } }) : null) ??
       (await prisma.client.findFirst({ where: { name } }))
     if (!client) {
-      client = await prisma.client.create({ data: { name, phone } })
+      client = await prisma.client.create({ data: { name, phone, email } })
+    } else if (email && !client.email) {
+      // completar email si el cliente no lo tenía
+      client = await prisma.client.update({ where: { id: client.id }, data: { email } })
     }
 
     // Código de seguimiento incremental (EG-AÑO-NNNN)
