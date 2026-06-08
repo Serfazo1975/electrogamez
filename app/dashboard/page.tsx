@@ -43,14 +43,15 @@ const INITIAL_PARTS: Part[] = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  received:      { label: 'Recibido',           color: 'bg-gray-700 text-gray-300' },
-  diagnosing:    { label: 'Diagnóstico',         color: 'bg-purple-900/50 text-purple-300' },
-  waiting_parts: { label: 'Esperando repuestos', color: 'bg-yellow-900/50 text-yellow-300' },
-  in_progress:   { label: 'En reparación',       color: 'bg-blue-900/50 text-blue-300' },
-  ready:         { label: 'Listo para retirar',  color: 'bg-green-900/50 text-green-300' },
-  completed:     { label: 'Completado',          color: 'bg-gray-700 text-gray-400' },
-  cancelled:     { label: 'Cancelado',           color: 'bg-red-900/50 text-red-300' },
+const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
+  received:      { label: 'Recibido',           color: 'bg-gray-700 text-gray-300',          dot: 'bg-gray-400' },
+  diagnosing:    { label: 'Diagnóstico',         color: 'bg-purple-900/50 text-purple-300',   dot: 'bg-purple-400' },
+  waiting_parts: { label: 'Esperando repuestos', color: 'bg-yellow-900/50 text-yellow-300',   dot: 'bg-yellow-400' },
+  in_progress:   { label: 'En reparación',       color: 'bg-blue-900/50 text-blue-300',       dot: 'bg-blue-400' },
+  ready:         { label: 'Listo para retirar',  color: 'bg-green-900/50 text-green-300',     dot: 'bg-green-400' },
+  completed:     { label: 'Completado',          color: 'bg-teal-900/50 text-teal-300',       dot: 'bg-teal-400' },
+  delivered:     { label: 'Entregado',           color: 'bg-gray-700 text-gray-400',          dot: 'bg-gray-500' },
+  cancelled:     { label: 'Cancelado',           color: 'bg-red-900/50 text-red-300',         dot: 'bg-red-400' },
 }
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
@@ -155,6 +156,12 @@ export default function DashboardPage() {
 
   // Documento (presupuesto / factura C)
   const [doc, setDoc] = useState<DocData | null>(null)
+
+  // Cambio de estado inline
+  const [statusDropdown, setStatusDropdown] = useState<string | null>(null)
+
+  // Modal de configuración
+  const [showConfig, setShowConfig] = useState(false)
 
   function openDoc(tipo: 'presupuesto' | 'factura', r: Repair) {
     const cliente = clients.find(c => c.name === r.client)
@@ -268,6 +275,15 @@ export default function DashboardPage() {
     setTab('inventario')
   }
 
+  // Cambiar estado de una reparación
+  async function changeStatus(repair: Repair, newStatus: string) {
+    setRepairs(prev => prev.map(r => r.code === repair.code ? { ...r, status: newStatus } : r))
+    setStatusDropdown(null)
+    if (dbOn && repair.id) {
+      apiJSON('PATCH', `/api/repairs/${repair.id}`, { status: newStatus }).catch(() => {})
+    }
+  }
+
   // Cambiar stock (persiste en la base si está conectada)
   function changeStock(idx: number, delta: number) {
     const part = parts[idx]
@@ -305,7 +321,8 @@ export default function DashboardPage() {
         </nav>
 
         <div className="px-3 py-4 border-t border-gray-700 space-y-1">
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
+          <button onClick={() => setShowConfig(true)}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
             <Settings className="w-5 h-5" /> Configuración
           </button>
           <a href="/" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
@@ -453,10 +470,24 @@ export default function DashboardPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4 text-gray-400 hidden lg:table-cell max-w-xs truncate">{r.issue}</td>
-                          <td className="px-5 py-4">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_CONFIG[r.status]?.color}`}>
-                              {STATUS_CONFIG[r.status]?.label}
-                            </span>
+                          <td className="px-5 py-4 relative">
+                            <button
+                              onClick={e => { e.stopPropagation(); setStatusDropdown(statusDropdown === r.code ? null : r.code) }}
+                              className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap hover:opacity-80 transition-opacity ${STATUS_CONFIG[r.status]?.color}`}>
+                              {STATUS_CONFIG[r.status]?.label} ▾
+                            </button>
+                            {statusDropdown === r.code && (
+                              <div className="absolute left-0 top-8 z-30 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl py-1 min-w-[200px]">
+                                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                                  <button key={key} onClick={() => changeStatus(r, key)}
+                                    className={`w-full flex items-center gap-2.5 text-left px-3 py-2 text-xs hover:bg-gray-700 transition-colors ${r.status === key ? 'text-white font-semibold' : 'text-gray-300'}`}>
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                                    {cfg.label}
+                                    {r.status === key && <span className="ml-auto text-blue-400">✓</span>}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </td>
                           <td className="px-5 py-4 hidden sm:table-cell">
                             <span className={`text-xs font-medium ${PRIORITY_CONFIG[r.priority]?.color}`}>{PRIORITY_CONFIG[r.priority]?.label}</span>
@@ -715,6 +746,76 @@ export default function DashboardPage() {
 
       {/* ── DOCUMENTO (presupuesto / factura C) ── */}
       {doc && <Documento data={doc} onClose={() => setDoc(null)} />}
+
+      {/* Overlay para cerrar el dropdown de estado */}
+      {statusDropdown && (
+        <div className="fixed inset-0 z-20" onClick={() => setStatusDropdown(null)} />
+      )}
+
+      {/* ── MODAL CONFIGURACIÓN ── */}
+      {showConfig && (
+        <Modal title="Configuración" onClose={() => setShowConfig(false)}>
+          <div className="space-y-4">
+            {/* Estado de la base */}
+            <div className="bg-gray-900 rounded-xl p-4 space-y-2.5">
+              <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Sistema</p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Base de datos</span>
+                <span className={`font-medium flex items-center gap-1.5 ${dbOn ? 'text-green-400' : 'text-yellow-400'}`}>
+                  <span className={`w-2 h-2 rounded-full ${dbOn ? 'bg-green-400' : 'bg-yellow-400'}`} />
+                  {dbOn ? 'Conectada (Neon)' : 'Modo local'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Reparaciones guardadas</span>
+                <span className="text-white font-medium">{repairs.length}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Clientes</span>
+                <span className="text-white font-medium">{clients.length}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Repuestos en inventario</span>
+                <span className="text-white font-medium">{parts.length}</span>
+              </div>
+            </div>
+
+            {/* Datos del negocio */}
+            <div className="bg-gray-900 rounded-xl p-4 space-y-1.5">
+              <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Negocio</p>
+              {[
+                ['Razón Social', 'ELECTROGAMEZ SERVICIO TECNICO RG'],
+                ['Titular', 'FAZZINI SERGIO FEDERICO'],
+                ['CUIT', '20-21429328-6'],
+                ['Ingresos Brutos', '1-28775'],
+                ['Inicio actividades', '01/04/2017'],
+                ['Domicilio', 'Los Pozos 458 Dpto:8, Río Gallegos'],
+                ['Punto de Venta', '00002'],
+              ].map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">{k}</span>
+                  <span className="text-white font-mono text-xs">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Contraseña */}
+            <div className="bg-gray-900 rounded-xl p-4">
+              <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Contraseña de acceso</p>
+              <p className="text-gray-400 text-xs leading-relaxed">
+                Para cambiarla, actualizá la variable{' '}
+                <code className="bg-gray-800 text-blue-300 px-1.5 py-0.5 rounded text-xs">ADMIN_PASSWORD</code>{' '}
+                en el panel de Netlify → Site settings → Environment variables y hacé un nuevo deploy.
+              </p>
+            </div>
+
+            <button onClick={() => setShowConfig(false)}
+              className="w-full border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">
+              Cerrar
+            </button>
+          </div>
+        </Modal>
+      )}
 
     </div>
   )
