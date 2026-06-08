@@ -1,226 +1,350 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Printer, MessageCircle, FileText } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Printer, MessageCircle, FileText, Plus } from 'lucide-react'
 
-// Datos fijos del negocio (Factura C - Monotributo)
-const NEGOCIO = {
-  nombre: 'ElectroGamez — E-Gtech',
-  titular: 'Sergio Fazzini',
-  domicilio: 'Los Pozos 458, Río Gallegos, Santa Cruz',
-  cuit: '20-00000000-0',
-  iibb: 'Exento',
-  inicio: '01/2024',
-  condicion: 'Responsable Monotributo',
-  whatsapp: '+54 9 11 5697 5880',
-  email: 'sergiofazzini@gmail.com',
+const NEG = {
+  razonSocial:  'ELECTROGAMEZ SERVICIO TECNICO RG',
+  titular:      'FAZZINI SERGIO FEDERICO',
+  domicilio:    'Los Pozos 458 Dpto:8, Rio Gallegos, Santa Cruz',
+  cuit:         '20214293286',
+  iibb:         '1-28775',
+  inicio:       '01/04/2017',
+  condIva:      'Responsable Monotributo',
+  puntoVenta:   '00002',
+  whatsapp:     '+54 9 11 5697 5880',
+  email:        'sergiofazzini@gmail.com',
+  slogan:       '"Somos un Grupo de Técnicos dedicados a la informática. Atención a Empresas y Usuarios."',
 }
 
-export type DocItem = { desc: string; qty: number; price: number }
+export type DocItem = {
+  codigo?: string
+  desc: string
+  qty: number
+  unidad?: string
+  price: number
+  bonif?: number
+}
 
 export type DocData = {
   tipo: 'presupuesto' | 'factura'
   numero: string
   fecha: string
   cliente: string
+  clienteCuit?: string
+  clienteCondIva?: string
+  clienteDomicilio?: string
+  condVenta?: string
   telefono?: string
   email?: string
+  refComercial?: string
   items: DocItem[]
+  caeNumero?: string
+  caeFechaVto?: string
   notas?: string
 }
 
-const money = (n: number) =>
-  '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+const ARS = (n: number) =>
+  n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-function buildWhatsappText(d: DocData, total: number) {
-  const titulo = d.tipo === 'factura' ? `FACTURA C N° ${d.numero}` : `PRESUPUESTO N° ${d.numero}`
-  const lineas = d.items
-    .map(i => `• ${i.desc} x${i.qty} — ${money(i.price * i.qty)}`)
+function whatsappText(d: DocData, total: number) {
+  const titulo = d.tipo === 'factura'
+    ? `FACTURA C  Pto.Vta ${NEG.puntoVenta}  Nro: ${d.numero}`
+    : `PRESUPUESTO Nro: ${d.numero}`
+  const items = d.items
+    .map(i => `• ${i.desc}  x${i.qty} ${i.unidad ?? 'u.'}  $${ARS(i.price * i.qty)}`)
     .join('\n')
-  return (
-    `*${NEGOCIO.nombre}*\n` +
-    `${titulo}\n` +
-    `Fecha: ${d.fecha}\n` +
-    `Cliente: ${d.cliente}\n\n` +
-    `${lineas}\n\n` +
-    `*TOTAL: ${money(total)}*\n\n` +
-    (d.notas ? `${d.notas}\n\n` : '') +
-    `${NEGOCIO.domicilio}\n${NEGOCIO.whatsapp}`
-  )
+  return [
+    `*${NEG.razonSocial}*`,
+    titulo,
+    `Fecha: ${d.fecha}`,
+    '',
+    `👤 Cliente: ${d.cliente}`,
+    d.clienteCuit ? `CUIT/DNI: ${d.clienteCuit}` : '',
+    d.refComercial ? `Ref: ${d.refComercial}` : '',
+    '',
+    items,
+    '',
+    `*IMPORTE TOTAL: $${ARS(total)}*`,
+    d.notas ? `\n${d.notas}` : '',
+    '',
+    `${NEG.domicilio}`,
+    NEG.whatsapp,
+  ].filter(l => l !== null).join('\n')
 }
+
+const inp = 'bg-transparent focus:outline-none border-b border-dashed border-gray-400 focus:border-blue-600'
 
 export default function Documento({ data, onClose }: { data: DocData; onClose: () => void }) {
   const [doc, setDoc] = useState<DocData>(data)
-  const total = doc.items.reduce((s, i) => s + i.price * i.qty, 0)
-  const esFactura = doc.tipo === 'factura'
-  const titulo = esFactura ? 'Factura C' : 'Presupuesto'
+  const esF = doc.tipo === 'factura'
 
-  function updateItem(idx: number, patch: Partial<DocItem>) {
-    setDoc(d => ({ ...d, items: d.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) }))
-  }
-  function addItem() {
-    setDoc(d => ({ ...d, items: [...d.items, { desc: '', qty: 1, price: 0 }] }))
-  }
-  function removeItem(idx: number) {
-    setDoc(d => ({ ...d, items: d.items.filter((_, i) => i !== idx) }))
-  }
+  const subtotal = doc.items.reduce((s, i) => {
+    const b = (i.bonif ?? 0) / 100
+    return s + i.price * i.qty * (1 - b)
+  }, 0)
 
-  function handlePrint() {
-    window.print()
-  }
+  useEffect(() => {
+    const el = document.createElement('style')
+    el.id = '__dp__'
+    el.textContent = `@media print {
+      body>*{display:none!important}
+      #doc-print{display:block!important;position:fixed;inset:0;overflow:auto;background:#fff;padding:0}
+      .no-print{display:none!important}
+    }`
+    document.head.appendChild(el)
+    return () => document.getElementById('__dp__')?.remove()
+  }, [])
 
-  function handleWhatsapp() {
-    const tel = (doc.telefono || '').replace(/\D/g, '')
-    const text = encodeURIComponent(buildWhatsappText(doc, total))
-    const url = tel ? `https://wa.me/${tel}?text=${text}` : `https://wa.me/?text=${text}`
-    window.open(url, '_blank')
+  const upd = <K extends keyof DocData>(k: K, v: DocData[K]) =>
+    setDoc(d => ({ ...d, [k]: v }))
+  const updItem = (idx: number, p: Partial<DocItem>) =>
+    setDoc(d => ({ ...d, items: d.items.map((it, i) => i === idx ? { ...it, ...p } : it) }))
+
+  const sendWA = () => {
+    const tel = (doc.telefono ?? '').replace(/\D/g, '')
+    const txt = encodeURIComponent(whatsappText(doc, subtotal))
+    window.open(tel ? `https://wa.me/${tel}?text=${txt}` : `https://wa.me/?text=${txt}`, '_blank')
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm overflow-y-auto print:bg-white print:p-0 print:overflow-visible print:static">
-      <div className="bg-white text-gray-900 rounded-2xl w-full max-w-2xl shadow-2xl my-4 print:my-0 print:max-w-none print:rounded-none print:shadow-none">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm overflow-y-auto flex items-start justify-center py-6 px-2">
 
-        {/* Barra superior (no se imprime) */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 print:hidden">
-          <div className="flex items-center gap-2 font-semibold text-gray-800">
-            <FileText className="w-5 h-5 text-blue-600" /> {titulo}
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={handleWhatsapp}
-              className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
-              <MessageCircle className="w-4 h-4" /> WhatsApp
-            </button>
-            <button onClick={handlePrint}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
-              <Printer className="w-4 h-4" /> Imprimir / PDF
-            </button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Documento imprimible */}
-        <div className="px-6 sm:px-8 py-6 print:px-10 print:py-8" id="documento-print">
-
-          {/* Encabezado */}
-          <div className="flex items-start justify-between border-b-2 border-gray-900 pb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{NEGOCIO.nombre}</h1>
-              <p className="text-sm text-gray-600 mt-1">{NEGOCIO.domicilio}</p>
-              <p className="text-sm text-gray-600">{NEGOCIO.whatsapp} · {NEGOCIO.email}</p>
-              <p className="text-xs text-gray-500 mt-1">{NEGOCIO.condicion}</p>
-            </div>
-            <div className="text-right">
-              {esFactura ? (
-                <>
-                  <div className="border-2 border-gray-900 rounded-lg px-3 py-1 inline-block mb-2">
-                    <span className="text-3xl font-bold">C</span>
-                  </div>
-                  <p className="text-sm font-semibold">FACTURA</p>
-                </>
-              ) : (
-                <p className="text-xl font-bold uppercase tracking-wide text-gray-800">Presupuesto</p>
-              )}
-              <p className="text-sm text-gray-700 mt-1">N° <span className="font-mono font-semibold">{doc.numero}</span></p>
-              <p className="text-sm text-gray-600">Fecha: {doc.fecha}</p>
-              {esFactura && <p className="text-xs text-gray-500 mt-1">CUIT: {NEGOCIO.cuit}</p>}
-            </div>
-          </div>
-
-          {/* Cliente */}
-          <div className="mt-4 bg-gray-50 rounded-lg px-4 py-3 print:bg-transparent print:px-0">
-            <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Cliente</p>
-            <p className="font-semibold text-gray-900">{doc.cliente || '—'}</p>
-            {doc.telefono && <p className="text-sm text-gray-600">{doc.telefono}</p>}
-            {doc.email && <p className="text-sm text-gray-600">{doc.email}</p>}
-          </div>
-
-          {/* Items */}
-          <table className="w-full mt-5 text-sm">
-            <thead>
-              <tr className="border-b border-gray-300 text-gray-600 text-xs uppercase">
-                <th className="text-left py-2">Detalle</th>
-                <th className="text-center py-2 w-16">Cant.</th>
-                <th className="text-right py-2 w-28">Precio</th>
-                <th className="text-right py-2 w-28">Subtotal</th>
-                <th className="w-8 print:hidden" />
-              </tr>
-            </thead>
-            <tbody>
-              {doc.items.map((it, idx) => (
-                <tr key={idx} className="border-b border-gray-100">
-                  <td className="py-2 pr-2">
-                    <input value={it.desc} onChange={e => updateItem(idx, { desc: e.target.value })}
-                      placeholder="Descripción del trabajo o repuesto"
-                      className="w-full bg-transparent border-b border-dashed border-gray-300 focus:border-blue-500 focus:outline-none py-0.5 print:border-none" />
-                  </td>
-                  <td className="py-2 text-center">
-                    <input type="number" min={1} value={it.qty}
-                      onChange={e => updateItem(idx, { qty: parseInt(e.target.value) || 1 })}
-                      className="w-12 text-center bg-transparent border-b border-dashed border-gray-300 focus:border-blue-500 focus:outline-none print:border-none" />
-                  </td>
-                  <td className="py-2 text-right">
-                    <input type="number" min={0} value={it.price}
-                      onChange={e => updateItem(idx, { price: parseFloat(e.target.value) || 0 })}
-                      className="w-24 text-right bg-transparent border-b border-dashed border-gray-300 focus:border-blue-500 focus:outline-none print:border-none" />
-                  </td>
-                  <td className="py-2 text-right font-medium">{money(it.price * it.qty)}</td>
-                  <td className="py-2 text-center print:hidden">
-                    <button onClick={() => removeItem(idx)} className="text-gray-300 hover:text-red-500 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <button onClick={addItem}
-            className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium print:hidden">
-            + Agregar línea
-          </button>
-
-          {/* Total */}
-          <div className="flex justify-end mt-4">
-            <div className="w-64">
-              <div className="flex justify-between py-2 border-t-2 border-gray-900 text-lg font-bold">
-                <span>TOTAL</span>
-                <span>{money(total)}</span>
-              </div>
-              {esFactura && (
-                <p className="text-xs text-gray-500 text-right mt-1">
-                  IVA no corresponde — Responsable Monotributo
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Notas */}
-          <div className="mt-5 print:mt-6">
-            <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 print:hidden">Notas / Condiciones</p>
-            <textarea value={doc.notas ?? ''} onChange={e => setDoc(d => ({ ...d, notas: e.target.value }))}
-              rows={2} placeholder="Validez del presupuesto, garantía, forma de pago..."
-              className="w-full text-sm bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 focus:outline-none focus:border-blue-500 resize-none print:bg-transparent print:border-none print:p-0 print:text-gray-700" />
-          </div>
-
-          <p className="text-center text-xs text-gray-400 mt-6 print:mt-10">
-            {esFactura
-              ? 'Documento no válido como factura fiscal sin CAE de AFIP. Verificar datos antes de emitir.'
-              : 'Presupuesto sin valor de factura. Precios sujetos a confirmación.'}
-          </p>
-        </div>
+      {/* Toolbar */}
+      <div className="no-print fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 shadow-2xl">
+        <span className="text-white font-medium text-sm mr-1 flex items-center gap-1.5">
+          <FileText className="w-4 h-4 text-blue-400" />
+          {esF ? 'Factura C' : 'Presupuesto'}
+        </span>
+        <button onClick={() => window.print()}
+          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <Printer className="w-4 h-4" /> Imprimir / PDF
+        </button>
+        <button onClick={sendWA}
+          className="flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <MessageCircle className="w-4 h-4" /> WhatsApp
+        </button>
+        <button onClick={onClose} className="ml-1 text-gray-400 hover:text-white transition-colors">
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Estilos de impresión */}
-      <style jsx global>{`
-        @media print {
-          body * { visibility: hidden; }
-          #documento-print, #documento-print * { visibility: visible; }
-          #documento-print { position: absolute; left: 0; top: 0; width: 100%; }
-          @page { margin: 1.5cm; }
-        }
-      `}</style>
+      {/* ── Documento ── */}
+      <div id="doc-print" className="bg-white text-black w-full max-w-3xl mt-14 rounded-xl shadow-2xl overflow-hidden"
+        style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '12px', lineHeight: '1.4' }}>
+        <div className="px-8 py-5">
+
+          {/* ORIGINAL */}
+          <div className="text-center font-bold tracking-widest uppercase border-b-2 border-black pb-1 mb-3"
+            style={{ fontSize: '14px' }}>
+            ORIGINAL
+          </div>
+
+          {/* Header 3 columnas */}
+          <div className="flex border border-black" style={{ minHeight: '90px' }}>
+            {/* Emisor */}
+            <div className="flex-1 p-3 border-r border-black">
+              <p className="font-bold" style={{ fontSize: '13px' }}>{NEG.razonSocial}</p>
+              <p className="mt-2"><b>Razón Social:</b> {NEG.titular}</p>
+              <p><b>Domicilio Comercial:</b> {NEG.domicilio}</p>
+              <p><b>Condición frente al IVA:</b> {NEG.condIva}</p>
+            </div>
+            {/* Centro: letra */}
+            <div className="flex flex-col items-center justify-center px-4 border-r border-black" style={{ minWidth: '90px' }}>
+              <div className="border-2 border-black font-bold flex items-center justify-center"
+                style={{ width: '52px', height: '52px', fontSize: '38px', lineHeight: '1' }}>
+                {esF ? 'C' : 'P'}
+              </div>
+              <p className="mt-1 text-center" style={{ fontSize: '9px' }}>{esF ? 'COD. 011' : 'PPTO.'}</p>
+              <p className="font-bold mt-0.5" style={{ fontSize: '13px' }}>{esF ? 'FACTURA' : 'PRESUPUESTO'}</p>
+            </div>
+            {/* Datos del comprobante */}
+            <div className="flex-1 p-3">
+              <p>
+                <b>Punto de Venta:</b> {NEG.puntoVenta}&nbsp;&nbsp;
+                <b>Comp. Nro:</b>{' '}
+                <input value={doc.numero} onChange={e => upd('numero', e.target.value)}
+                  className={`${inp} w-28 text-right`} />
+              </p>
+              <p><b>Fecha de Emisión:</b> {doc.fecha}</p>
+              <p className="mt-2"><b>CUIT:</b> {NEG.cuit}</p>
+              <p><b>Ingresos Brutos:</b> {NEG.iibb}</p>
+              <p><b>Fecha de Inicio de Actividades:</b> {NEG.inicio}</p>
+            </div>
+          </div>
+
+          {/* Receptor */}
+          <div className="border border-t-0 border-black p-3" style={{ fontSize: '11px' }}>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+              <p>
+                <b>CUIT:</b>{' '}
+                <input value={doc.clienteCuit ?? ''} onChange={e => upd('clienteCuit', e.target.value)}
+                  placeholder="Sin especificar / Consumidor Final"
+                  className={`${inp} w-44`} style={{ fontSize: '11px' }} />
+              </p>
+              <p>
+                <b>Apellido y Nombre / Razón Social:</b>{' '}
+                <span className="font-semibold">{doc.cliente}</span>
+              </p>
+              <p>
+                <b>Condición frente al IVA:</b>{' '}
+                <input value={doc.clienteCondIva ?? 'Consumidor Final'} onChange={e => upd('clienteCondIva', e.target.value)}
+                  className={`${inp} w-36`} style={{ fontSize: '11px' }} />
+              </p>
+              <p>
+                <b>Domicilio:</b>{' '}
+                <input value={doc.clienteDomicilio ?? ''} onChange={e => upd('clienteDomicilio', e.target.value)}
+                  placeholder="—"
+                  className={`${inp} w-48`} style={{ fontSize: '11px' }} />
+              </p>
+            </div>
+            <p className="mt-1">
+              <b>Condición de venta:</b>{' '}
+              <select value={doc.condVenta ?? 'Contado'} onChange={e => upd('condVenta', e.target.value as DocData['condVenta'])}
+                className="bg-transparent border-b border-dashed border-gray-400 focus:outline-none"
+                style={{ fontSize: '11px' }}>
+                <option>Contado</option>
+                <option>Cuenta Corriente</option>
+                <option>Tarjeta de Débito</option>
+                <option>Tarjeta de Crédito</option>
+                <option>Transferencia</option>
+              </select>
+            </p>
+          </div>
+
+          {/* Tabla de ítems */}
+          <div className="border border-t-0 border-black">
+            {/* Referencia comercial */}
+            <div className="px-3 py-1.5 border-b border-black bg-gray-50" style={{ fontSize: '11px' }}>
+              <b>Referencia Comercial:</b>{' '}
+              <input value={doc.refComercial ?? ''} onChange={e => upd('refComercial', e.target.value)}
+                placeholder="(opcional)"
+                className={`${inp} w-64`} style={{ fontSize: '11px' }} />
+            </div>
+
+            <table className="w-full" style={{ fontSize: '11px', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr className="bg-gray-50 border-b border-black text-center" style={{ fontSize: '10px' }}>
+                  <th className="px-2 py-1.5 text-left border-r border-gray-300 w-12">Código</th>
+                  <th className="px-2 py-1.5 text-left border-r border-gray-300">Producto / Servicio</th>
+                  <th className="px-2 py-1.5 border-r border-gray-300 w-16">Cantidad</th>
+                  <th className="px-2 py-1.5 border-r border-gray-300 w-20">U. Medida</th>
+                  <th className="px-2 py-1.5 border-r border-gray-300 w-24">Precio Unit.</th>
+                  <th className="px-2 py-1.5 border-r border-gray-300 w-14">% Bonif</th>
+                  <th className="px-2 py-1.5 border-r border-gray-300 w-20">Imp. Bonif.</th>
+                  <th className="px-2 py-1.5 w-24">Subtotal</th>
+                  <th className="no-print w-6" />
+                </tr>
+              </thead>
+              <tbody>
+                {doc.items.map((it, idx) => {
+                  const b = it.bonif ?? 0
+                  const bonifAmt = it.price * it.qty * (b / 100)
+                  const sub = it.price * it.qty - bonifAmt
+                  return (
+                    <tr key={idx} className="border-b border-gray-200">
+                      <td className="px-2 py-1.5 border-r border-gray-200">
+                        <input value={it.codigo ?? ''} onChange={e => updItem(idx, { codigo: e.target.value })}
+                          className={`${inp} w-10`} style={{ fontSize: '11px' }} />
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-gray-200">
+                        <input value={it.desc} onChange={e => updItem(idx, { desc: e.target.value })}
+                          placeholder="Descripción del trabajo o repuesto"
+                          className={`${inp} w-full`} style={{ fontSize: '11px' }} />
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-gray-200 text-right">
+                        <input type="number" min={0.01} step="0.01" value={it.qty}
+                          onChange={e => updItem(idx, { qty: parseFloat(e.target.value) || 1 })}
+                          className={`${inp} w-12 text-right`} style={{ fontSize: '11px' }} />
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-gray-200">
+                        <input value={it.unidad ?? 'unidades'} onChange={e => updItem(idx, { unidad: e.target.value })}
+                          className={`${inp} w-16`} style={{ fontSize: '11px' }} />
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-gray-200 text-right">
+                        <input type="number" min={0} value={it.price}
+                          onChange={e => updItem(idx, { price: parseFloat(e.target.value) || 0 })}
+                          className={`${inp} w-20 text-right`} style={{ fontSize: '11px' }} />
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-gray-200 text-right">
+                        <input type="number" min={0} max={100} value={b}
+                          onChange={e => updItem(idx, { bonif: parseFloat(e.target.value) || 0 })}
+                          className={`${inp} w-10 text-right`} style={{ fontSize: '11px' }} />
+                      </td>
+                      <td className="px-2 py-1.5 border-r border-gray-200 text-right">{ARS(bonifAmt)}</td>
+                      <td className="px-2 py-1.5 text-right font-medium">{ARS(sub)}</td>
+                      <td className="no-print px-1 py-1.5 text-center">
+                        <button onClick={() => setDoc(d => ({ ...d, items: d.items.filter((_, i) => i !== idx) }))}
+                          className="text-gray-300 hover:text-red-500 transition-colors">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            <div className="no-print px-3 py-1.5">
+              <button
+                onClick={() => setDoc(d => ({ ...d, items: [...d.items, { desc: '', qty: 1, unidad: 'unidades', price: 0 }] }))}
+                className="text-blue-600 hover:text-blue-700 text-xs font-medium flex items-center gap-1">
+                <Plus className="w-3.5 h-3.5" /> Agregar ítem
+              </button>
+            </div>
+          </div>
+
+          {/* Totales */}
+          <div className="border border-t-0 border-black px-4 py-3">
+            <div className="flex justify-end">
+              <div className="text-right space-y-1" style={{ fontSize: '12px' }}>
+                <p>Subtotal: <b>$ {ARS(subtotal)}</b></p>
+                <p>Importe Otros Tributos: <b>$ 0,00</b></p>
+                <p className="font-bold border-t border-black pt-1 mt-1" style={{ fontSize: '13px' }}>
+                  Importe Total: <span>$ {ARS(subtotal)}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Slogan */}
+          <div className="border border-t-0 border-black px-4 py-2 text-center italic"
+            style={{ fontSize: '11px', color: '#555' }}>
+            {NEG.slogan}
+          </div>
+
+          {/* Notas (presupuesto) */}
+          {!esF && (
+            <div className="border border-t-0 border-black px-3 py-2">
+              <p className="font-bold text-xs mb-1">Condiciones:</p>
+              <textarea value={doc.notas ?? ''} onChange={e => upd('notas', e.target.value)}
+                rows={2} placeholder="Validez 7 días. No incluye repuestos no detallados."
+                className="w-full text-xs bg-transparent border border-dashed border-gray-300 focus:border-blue-500 focus:outline-none rounded px-2 py-1 resize-none" />
+            </div>
+          )}
+
+          {/* CAE + pie */}
+          <div className="flex items-end justify-between pt-3 mt-2 border-t border-black"
+            style={{ fontSize: '11px' }}>
+            <p>Pág. 1/1</p>
+            <div className="text-right space-y-0.5">
+              <p>
+                <b>CAE N°:</b>{' '}
+                <input value={doc.caeNumero ?? ''} onChange={e => upd('caeNumero', e.target.value)}
+                  placeholder="(completar desde AFIP/ARCA)"
+                  className={`${inp} w-44`} style={{ fontSize: '11px' }} />
+              </p>
+              <p>
+                <b>Fecha de Vto. de CAE:</b>{' '}
+                <input value={doc.caeFechaVto ?? ''} onChange={e => upd('caeFechaVto', e.target.value)}
+                  placeholder="DD/MM/AAAA"
+                  className={`${inp} w-28`} style={{ fontSize: '11px' }} />
+              </p>
+              <p className="font-bold mt-1">Comprobante {esF ? 'Autorizado' : 'no fiscal'}</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   )
 }

@@ -129,8 +129,10 @@ export default function DashboardPage() {
   function openDoc(tipo: 'presupuesto' | 'factura', r: Repair) {
     const cliente = clients.find(c => c.name === r.client)
     const costNum = r.cost ? parseInt(r.cost.replace(/\D/g, '')) || 0 : 0
-    const prefix = tipo === 'factura' ? 'FC-C' : 'PRE'
-    const numero = `${prefix}-${r.code.split('-').slice(1).join('-')}`
+    const seq = r.code.split('-')[2] ?? '0001'
+    const numero = tipo === 'factura'
+      ? String(parseInt(seq)).padStart(8, '0')
+      : r.code
     setDoc({
       tipo,
       numero,
@@ -138,10 +140,11 @@ export default function DashboardPage() {
       cliente: r.client,
       telefono: cliente?.phone,
       email: cliente?.email,
-      items: [{ desc: `Reparación ${r.device} — ${r.issue}`, qty: 1, price: costNum }],
+      refComercial: r.code,
+      items: [{ desc: `Reparación ${r.device} — ${r.issue}`, qty: 1, unidad: 'unidades', price: costNum }],
       notas: tipo === 'presupuesto'
         ? 'Presupuesto válido por 7 días. No incluye repuestos no detallados.'
-        : 'Garantía 30 días sobre el trabajo realizado.',
+        : undefined,
     })
   }
 
