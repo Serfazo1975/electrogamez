@@ -3,14 +3,13 @@
 import { useState } from 'react'
 import {
   Monitor, Gamepad2, Wrench, Shield, Clock, Star,
-  Phone, Mail, MapPin, ChevronRight, Zap, CheckCircle,
-  Menu, X, Search, Cpu, Smartphone, BarChart2, Package,
-  MessageCircle, ArrowRight
+  Mail, MapPin, Zap, CheckCircle,
+  Menu, X, Search, Cpu,
+  MessageCircle
 } from 'lucide-react'
 
 const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
-  { label: 'Sistema POS', href: '#pos' },
   { label: 'Testimonios', href: '#testimonios' },
   { label: 'Contacto', href: '#contacto' },
 ]
@@ -54,15 +53,6 @@ const SERVICES = [
   },
 ]
 
-const POS_FEATURES = [
-  { icon: <BarChart2 className="w-5 h-5" />, title: 'Ventas y Caja', desc: 'Control completo de ventas diarias, carrito de compras y múltiples formas de pago.' },
-  { icon: <Package className="w-5 h-5" />, title: 'Inventario', desc: 'Gestión de stock con alertas de stock bajo e importación desde Excel.' },
-  { icon: <Wrench className="w-5 h-5" />, title: 'Reparaciones', desc: 'Registro y seguimiento completo de todas las reparaciones con historial de estados.' },
-  { icon: <Search className="w-5 h-5" />, title: 'Clientes y Proveedores', desc: 'Base de datos completa de clientes y proveedores con historial de transacciones.' },
-  { icon: <BarChart2 className="w-5 h-5" />, title: 'Reportes', desc: 'Estadísticas de ventas, historial de transacciones y análisis del negocio.' },
-  { icon: <Shield className="w-5 h-5" />, title: 'Backup automático', desc: 'Tu información siempre segura con backups automáticos y restauración fácil.' },
-]
-
 const STATS = [
   { value: '+500', label: 'Equipos reparados' },
   { value: '10+', label: 'Años de experiencia' },
@@ -93,7 +83,6 @@ const TESTIMONIALS = [
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [trackCode, setTrackCode] = useState('')
   const [form, setForm] = useState({ name: '', phone: '', message: '' })
   const [formSent, setFormSent] = useState(false)
 
@@ -168,7 +157,6 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section className="pt-28 pb-24 px-4 relative overflow-hidden">
-        {/* Fondo decorativo */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-20 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -181,10 +169,8 @@ export default function Home() {
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 tracking-tight">
               Reparamos tu{' '}
-              <span className="relative">
-                <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  PlayStation
-                </span>
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                PlayStation
               </span>
               {' '}y tu PC
             </h1>
@@ -211,7 +197,6 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {STATS.map((s) => (
                 <div key={s.label}>
@@ -231,8 +216,6 @@ export default function Home() {
           <div className="flex gap-2">
             <input
               type="text"
-              value={trackCode}
-              onChange={(e) => setTrackCode(e.target.value.toUpperCase())}
               placeholder="Ej: EG-2025-0042"
               className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono text-sm"
             />
@@ -258,7 +241,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {SERVICES.map((s) => (
-              <div key={s.title} className={`relative bg-gradient-to-b ${s.color} border border-gray-800 ${s.border} rounded-2xl p-6 transition-all duration-300 group`}>
+              <div key={s.title} className={`relative bg-gradient-to-b ${s.color} border border-gray-800 ${s.border} rounded-2xl p-6 transition-all duration-300`}>
                 <div className={`p-3 ${s.iconColor} rounded-xl w-fit mb-5`}>
                   {s.icon}
                 </div>
@@ -278,82 +261,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SISTEMA POS ── */}
-      <section id="pos" className="py-24 px-4 bg-gray-900/40">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="text-cyan-400 text-sm font-medium uppercase tracking-widest mb-3">E-Gtech Sistema POS</p>
-              <h2 className="text-4xl font-bold mb-5">Software para tu negocio de reparaciones</h2>
-              <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                Gestiona ventas, inventario, clientes y reparaciones desde un solo lugar.
-                Sistema completo diseñado para talleres de servicio técnico.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                {POS_FEATURES.map((f) => (
-                  <div key={f.title} className="flex gap-3">
-                    <div className="p-2 bg-gray-800 rounded-lg text-blue-400 h-fit flex-shrink-0">{f.icon}</div>
-                    <div>
-                      <p className="font-semibold text-sm">{f.title}</p>
-                      <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{f.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <a
-                href="https://seviciosrg.netlify.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-6 py-3 rounded-xl font-semibold transition-all"
-              >
-                Ver sistema en vivo <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-
-            <div className="relative">
-              <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-6 shadow-2xl">
-                {/* Mockup del dashboard */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="ml-2 text-gray-500 text-xs font-mono">E-Gtech POS</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {[
-                    { label: 'Ventas hoy', value: '$24.500', color: 'text-green-400' },
-                    { label: 'Productos', value: '142', color: 'text-blue-400' },
-                    { label: 'Reparaciones', value: '8', color: 'text-cyan-400' },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-gray-900/80 rounded-xl p-3 text-center">
-                      <p className={`text-lg font-bold ${item.color}`}>{item.value}</p>
-                      <p className="text-gray-500 text-xs mt-0.5">{item.label}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  {[
-                    { item: 'Chip HDMI PS5', status: 'En reparación', color: 'bg-blue-900/50 text-blue-300' },
-                    { item: 'Laptop HP Pavilion', status: 'Listo', color: 'bg-green-900/50 text-green-300' },
-                    { item: 'PC Gaming', status: 'Diagnóstico', color: 'bg-purple-900/50 text-purple-300' },
-                  ].map((r) => (
-                    <div key={r.item} className="flex items-center justify-between bg-gray-900/60 rounded-lg px-3 py-2">
-                      <span className="text-sm text-gray-300">{r.item}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.color}`}>{r.status}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl" />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── POR QUÉ ELEGIRNOS ── */}
-      <section className="py-24 px-4">
+      <section className="py-24 px-4 bg-gray-900/40">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-bold mb-4">¿Por qué elegirnos?</h2>
@@ -378,7 +287,7 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIOS ── */}
-      <section id="testimonios" className="py-24 px-4 bg-gray-900/40">
+      <section id="testimonios" className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Testimonios</p>
@@ -410,7 +319,7 @@ export default function Home() {
       </section>
 
       {/* ── CONTACTO ── */}
-      <section id="contacto" className="py-24 px-4">
+      <section id="contacto" className="py-24 px-4 bg-gray-900/40">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16">
             <div>
@@ -421,12 +330,7 @@ export default function Home() {
               </p>
 
               <div className="space-y-5">
-                <a
-                  href="https://wa.me/5491156975880"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4 group"
-                >
+                <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
                   <div className="p-3 bg-green-600/20 rounded-xl text-green-400 group-hover:bg-green-600/30 transition-colors">
                     <MessageCircle className="w-5 h-5" />
                   </div>
@@ -534,17 +438,16 @@ export default function Home() {
               <span className="font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                 ElectroGamez
               </span>
-              <span className="text-gray-600 text-sm ml-1">/ E-Gtech</span>
             </div>
 
             <p className="text-gray-600 text-sm text-center">
               © {new Date().getFullYear()} ElectroGamez · Los Pozos 458, Rio Gallegos · Alias: <span className="text-gray-500">Electrogamez</span>
             </p>
 
-            <div className="flex gap-5 text-sm text-gray-500">
-              <a href="/seguimiento" className="hover:text-white transition-colors">Seguir reparación</a>
-              <a href="/dashboard" className="hover:text-white transition-colors">Admin</a>
-            </div>
+            {/* Enlace admin discreto — solo visible si sabés que existe */}
+            <a href="/login" className="text-gray-800 hover:text-gray-600 text-xs transition-colors">
+              ·
+            </a>
           </div>
         </div>
       </footer>

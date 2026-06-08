@@ -130,8 +130,17 @@ export default function DashboardPage() {
             <Settings className="w-5 h-5" /> Configuración
           </button>
           <a href="/" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
-            <LogOut className="w-5 h-5" /> Volver al sitio
+            <LogOut className="w-5 h-5" /> Ver sitio público
           </a>
+          <button
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' })
+              window.location.href = '/login'
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
+          >
+            <LogOut className="w-5 h-5" /> Cerrar sesión
+          </button>
         </div>
       </aside>
 
