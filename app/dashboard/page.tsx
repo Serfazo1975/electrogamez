@@ -8,36 +8,35 @@ import {
   Laptop, ChevronRight, Bell, Settings, Menu, X
 } from 'lucide-react'
 
-// ── Datos mock (hasta conectar la base de datos) ──────────────────────────────
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 
-const STATS = [
-  { label: 'Reparaciones activas', value: '12', icon: <Wrench className="w-5 h-5" />, color: 'text-blue-400', bg: 'bg-blue-600/20' },
-  { label: 'Listas para retirar', value: '3', icon: <CheckCircle2 className="w-5 h-5" />, color: 'text-green-400', bg: 'bg-green-600/20' },
-  { label: 'Esperando repuestos', value: '2', icon: <Clock className="w-5 h-5" />, color: 'text-yellow-400', bg: 'bg-yellow-600/20' },
-  { label: 'Ingresos del mes', value: '$185.000', icon: <TrendingUp className="w-5 h-5" />, color: 'text-cyan-400', bg: 'bg-cyan-600/20' },
+type Repair = { code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null }
+type Client = { name: string; phone: string; email: string; repairs: number; lastRepair: string }
+type Part   = { name: string; sku: string; stock: number; minStock: number; salePrice: string }
+
+// ── Datos iniciales ───────────────────────────────────────────────────────────
+
+const INITIAL_REPAIRS: Repair[] = [
+  { code: 'EG-2025-0001', client: 'Juan Pérez',     device: 'HP Pavilion 15',  type: 'laptop',      issue: 'Se apaga sola',    status: 'in_progress',   priority: 'high',   date: '03/06/2025', cost: '$25.000' },
+  { code: 'EG-2025-0002', client: 'María González', device: 'PlayStation 5',   type: 'playstation', issue: 'Sin imagen HDMI',  status: 'waiting_parts', priority: 'medium', date: '02/06/2025', cost: '$45.000' },
+  { code: 'EG-2025-0003', client: 'Carlos Torres',  device: 'PC escritorio',   type: 'pc',          issue: 'No enciende',      status: 'diagnosing',    priority: 'high',   date: '04/06/2025', cost: null },
+  { code: 'EG-2025-0004', client: 'Ana Morales',    device: 'Laptop Lenovo',   type: 'laptop',      issue: 'Pantalla rota',    status: 'ready',         priority: 'low',    date: '01/06/2025', cost: '$38.000' },
+  { code: 'EG-2025-0005', client: 'Pedro Soto',     device: 'PlayStation 4',   type: 'playstation', issue: 'Lector blu-ray',   status: 'completed',     priority: 'medium', date: '28/05/2025', cost: '$22.000' },
 ]
 
-const REPAIRS = [
-  { code: 'EG-2025-0001', client: 'Juan Pérez', device: 'HP Pavilion 15', type: 'laptop', issue: 'Se apaga sola', status: 'in_progress', priority: 'high', date: '03/06/2025', cost: '$25.000' },
-  { code: 'EG-2025-0002', client: 'María González', device: 'PlayStation 5', type: 'playstation', issue: 'Sin imagen HDMI', status: 'waiting_parts', priority: 'medium', date: '02/06/2025', cost: '$45.000' },
-  { code: 'EG-2025-0003', client: 'Carlos Torres', device: 'PC escritorio', type: 'pc', issue: 'No enciende', status: 'diagnosing', priority: 'high', date: '04/06/2025', cost: null },
-  { code: 'EG-2025-0004', client: 'Ana Morales', device: 'Laptop Lenovo', type: 'laptop', issue: 'Pantalla rota', status: 'ready', priority: 'low', date: '01/06/2025', cost: '$38.000' },
-  { code: 'EG-2025-0005', client: 'Pedro Soto', device: 'PlayStation 4', type: 'playstation', issue: 'Lector blu-ray', status: 'completed', priority: 'medium', date: '28/05/2025', cost: '$22.000' },
+const INITIAL_CLIENTS: Client[] = [
+  { name: 'Juan Pérez',     phone: '+54 9 11 1234 5678', email: 'juan@gmail.com',     repairs: 2, lastRepair: '03/06/2025' },
+  { name: 'María González', phone: '+54 9 11 8765 4321', email: 'maria@hotmail.com',  repairs: 1, lastRepair: '02/06/2025' },
+  { name: 'Carlos Torres',  phone: '+54 9 11 1111 2222', email: '',                   repairs: 3, lastRepair: '04/06/2025' },
+  { name: 'Ana Morales',    phone: '+54 9 11 3333 4444', email: 'ana@gmail.com',      repairs: 1, lastRepair: '01/06/2025' },
 ]
 
-const CLIENTS = [
-  { name: 'Juan Pérez', phone: '+56 9 1234 5678', email: 'juan@gmail.com', repairs: 2, lastRepair: '03/06/2025' },
-  { name: 'María González', phone: '+56 9 8765 4321', email: 'maria@hotmail.com', repairs: 1, lastRepair: '02/06/2025' },
-  { name: 'Carlos Torres', phone: '+56 9 1111 2222', email: '', repairs: 3, lastRepair: '04/06/2025' },
-  { name: 'Ana Morales', phone: '+56 9 3333 4444', email: 'ana@gmail.com', repairs: 1, lastRepair: '01/06/2025' },
-]
-
-const INVENTORY = [
-  { name: 'Ventilador laptop genérico', sku: 'FAN-LAP-001', stock: 8, minStock: 3, salePrice: '$8.000' },
-  { name: 'Chip HDMI PS5', sku: 'PS5-HDMI-001', stock: 2, minStock: 3, salePrice: '$35.000' },
-  { name: 'Memoria RAM DDR4 8GB', sku: 'RAM-DDR4-8G', stock: 5, minStock: 2, salePrice: '$38.000' },
-  { name: 'Pasta térmica Thermal Grizzly', sku: 'PASTE-TG-001', stock: 12, minStock: 5, salePrice: '$4.500' },
-  { name: 'Pantalla laptop 15.6" FHD', sku: 'SCR-156-FHD', stock: 1, minStock: 2, salePrice: '$65.000' },
+const INITIAL_PARTS: Part[] = [
+  { name: 'Ventilador laptop genérico',    sku: 'FAN-LAP-001',  stock: 8,  minStock: 3, salePrice: '$8.000'  },
+  { name: 'Chip HDMI PS5',                 sku: 'PS5-HDMI-001', stock: 2,  minStock: 3, salePrice: '$35.000' },
+  { name: 'Memoria RAM DDR4 8GB',          sku: 'RAM-DDR4-8G',  stock: 5,  minStock: 2, salePrice: '$38.000' },
+  { name: 'Pasta térmica Thermal Grizzly', sku: 'PASTE-TG-001', stock: 12, minStock: 5, salePrice: '$4.500'  },
+  { name: 'Pantalla laptop 15.6" FHD',     sku: 'SCR-156-FHD',  stock: 1,  minStock: 2, salePrice: '$65.000' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -64,6 +63,46 @@ const DEVICE_ICON: Record<string, React.ReactNode> = {
   playstation: <Gamepad2 className="w-4 h-4" />,
 }
 
+function today() {
+  return new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function nextCode(repairs: Repair[]) {
+  const nums = repairs.map(r => parseInt(r.code.split('-')[2] ?? '0'))
+  const next = Math.max(...nums, 0) + 1
+  return `EG-${new Date().getFullYear()}-${String(next).padStart(4, '0')}`
+}
+
+// ── Modal genérico ────────────────────────────────────────────────────────────
+
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+          <h2 className="font-semibold text-lg">{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="px-6 py-5">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-sm text-gray-400 block mb-1.5">{label}</label>
+      {children}
+    </div>
+  )
+}
+
+const inputCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+const selectCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
+
 type Tab = 'resumen' | 'reparaciones' | 'clientes' | 'inventario'
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -73,58 +112,104 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  const [repairs, setRepairs] = useState<Repair[]>(INITIAL_REPAIRS)
+  const [clients, setClients] = useState<Client[]>(INITIAL_CLIENTS)
+  const [parts,   setParts]   = useState<Part[]>(INITIAL_PARTS)
+
+  // Modales
+  const [showNewRepair,  setShowNewRepair]  = useState(false)
+  const [showNewClient,  setShowNewClient]  = useState(false)
+  const [showNewPart,    setShowNewPart]    = useState(false)
+
+  // Formulario nueva reparación
+  const [repairForm, setRepairForm] = useState({ client: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
+
+  // Formulario nuevo cliente
+  const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '' })
+
+  // Formulario nuevo repuesto
+  const [partForm, setPartForm] = useState({ name: '', sku: '', brand: '', stock: '', minStock: '2', salePrice: '' })
+
   const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'resumen',       label: 'Resumen',     icon: <LayoutDashboard className="w-5 h-5" /> },
-    { id: 'reparaciones',  label: 'Reparaciones', icon: <Wrench className="w-5 h-5" /> },
-    { id: 'clientes',      label: 'Clientes',     icon: <Users className="w-5 h-5" /> },
-    { id: 'inventario',    label: 'Inventario',   icon: <Package className="w-5 h-5" /> },
+    { id: 'resumen',      label: 'Resumen',      icon: <LayoutDashboard className="w-5 h-5" /> },
+    { id: 'reparaciones', label: 'Reparaciones', icon: <Wrench className="w-5 h-5" /> },
+    { id: 'clientes',     label: 'Clientes',     icon: <Users className="w-5 h-5" /> },
+    { id: 'inventario',   label: 'Inventario',   icon: <Package className="w-5 h-5" /> },
   ]
 
-  const filteredRepairs = REPAIRS.filter((r) =>
+  const filteredRepairs = repairs.filter(r =>
     r.client.toLowerCase().includes(search.toLowerCase()) ||
     r.code.toLowerCase().includes(search.toLowerCase()) ||
     r.device.toLowerCase().includes(search.toLowerCase())
   )
 
+  function submitRepair(e: React.FormEvent) {
+    e.preventDefault()
+    const device = [repairForm.deviceBrand, repairForm.deviceModel].filter(Boolean).join(' ') || repairForm.deviceType
+    setRepairs(prev => [{
+      code: nextCode(prev),
+      client: repairForm.client,
+      device,
+      type: repairForm.deviceType,
+      issue: repairForm.issue,
+      status: 'received',
+      priority: repairForm.priority,
+      date: today(),
+      cost: repairForm.cost ? `$${repairForm.cost}` : null,
+    }, ...prev])
+    setRepairForm({ client: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
+    setShowNewRepair(false)
+    setTab('reparaciones')
+  }
+
+  function submitClient(e: React.FormEvent) {
+    e.preventDefault()
+    setClients(prev => [{ ...clientForm, repairs: 0, lastRepair: today() }, ...prev])
+    setClientForm({ name: '', phone: '', email: '' })
+    setShowNewClient(false)
+    setTab('clientes')
+  }
+
+  function submitPart(e: React.FormEvent) {
+    e.preventDefault()
+    setParts(prev => [{
+      name: partForm.name,
+      sku: partForm.sku,
+      stock: parseInt(partForm.stock) || 0,
+      minStock: parseInt(partForm.minStock) || 2,
+      salePrice: partForm.salePrice ? `$${partForm.salePrice}` : '-',
+    }, ...prev])
+    setPartForm({ name: '', sku: '', brand: '', stock: '', minStock: '2', salePrice: '' })
+    setShowNewPart(false)
+    setTab('inventario')
+  }
+
+  const STATS = [
+    { label: 'Reparaciones activas', value: String(repairs.filter(r => !['completed','cancelled'].includes(r.status)).length), icon: <Wrench className="w-5 h-5" />, color: 'text-blue-400', bg: 'bg-blue-600/20' },
+    { label: 'Listas para retirar',  value: String(repairs.filter(r => r.status === 'ready').length),          icon: <CheckCircle2 className="w-5 h-5" />, color: 'text-green-400',  bg: 'bg-green-600/20' },
+    { label: 'Esperando repuestos',  value: String(repairs.filter(r => r.status === 'waiting_parts').length),  icon: <Clock className="w-5 h-5" />,        color: 'text-yellow-400', bg: 'bg-yellow-600/20' },
+    { label: 'Total clientes',       value: String(clients.length),                                            icon: <TrendingUp className="w-5 h-5" />,    color: 'text-cyan-400',   bg: 'bg-cyan-600/20' },
+  ]
+
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
 
       {/* ── Sidebar ── */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-gray-800/95 border-r border-gray-700 flex flex-col
-        transition-transform duration-200
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:relative lg:translate-x-0
-      `}>
-        {/* Logo */}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-800/95 border-r border-gray-700 flex flex-col transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
         <div className="px-6 py-5 border-b border-gray-700 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">
-            ElectroGamez
-          </a>
-          <button className="lg:hidden text-gray-400" onClick={() => setSidebarOpen(false)}>
-            <X className="w-5 h-5" />
-          </button>
+          <a href="/" className="text-xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">ElectroGamez</a>
+          <button className="lg:hidden text-gray-400" onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => { setTab(item.id); setSidebarOpen(false) }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                tab === item.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              {item.icon}
-              {item.label}
+          {NAV.map(item => (
+            <button key={item.id} onClick={() => { setTab(item.id); setSidebarOpen(false) }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${tab === item.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}>
+              {item.icon}{item.label}
             </button>
           ))}
         </nav>
 
-        {/* Bottom */}
         <div className="px-3 py-4 border-t border-gray-700 space-y-1">
           <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
             <Settings className="w-5 h-5" /> Configuración
@@ -132,59 +217,41 @@ export default function DashboardPage() {
           <a href="/" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
             <LogOut className="w-5 h-5" /> Ver sitio público
           </a>
-          <button
-            onClick={async () => {
-              await fetch('/api/auth/logout', { method: 'POST' })
-              window.location.href = '/login'
-            }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
-          >
+          <button onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.href = '/login' }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors">
             <LogOut className="w-5 h-5" /> Cerrar sesión
           </button>
         </div>
       </aside>
 
-      {/* Overlay móvil */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      {/* ── Contenido principal ── */}
+      {/* ── Main ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-        {/* Header */}
         <header className="bg-gray-800/50 border-b border-gray-700 px-4 lg:px-8 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-4">
-            <button className="lg:hidden text-gray-400" onClick={() => setSidebarOpen(true)}>
-              <Menu className="w-6 h-6" />
-            </button>
+            <button className="lg:hidden text-gray-400" onClick={() => setSidebarOpen(true)}><Menu className="w-6 h-6" /></button>
             <div>
-              <h1 className="font-semibold text-lg capitalize">
-                {NAV.find((n) => n.id === tab)?.label}
-              </h1>
-              <p className="text-gray-400 text-xs hidden sm:block">
-                {new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </p>
+              <h1 className="font-semibold text-lg capitalize">{NAV.find(n => n.id === tab)?.label}</h1>
+              <p className="text-gray-400 text-xs hidden sm:block">{new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              {repairs.filter(r => r.status === 'ready').length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />}
             </button>
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">S</div>
           </div>
         </header>
 
-        {/* Contenido con scroll */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
 
-          {/* ── TAB: RESUMEN ── */}
+          {/* ── RESUMEN ── */}
           {tab === 'resumen' && (
             <div className="space-y-8">
-              {/* Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {STATS.map((s) => (
+                {STATS.map(s => (
                   <div key={s.label} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5">
                     <div className={`p-2.5 ${s.bg} rounded-xl w-fit mb-3 ${s.color}`}>{s.icon}</div>
                     <p className="text-2xl font-bold">{s.value}</p>
@@ -193,7 +260,21 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              {/* Últimas reparaciones */}
+              {/* Acciones rápidas */}
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { label: 'Nueva reparación', icon: <Wrench className="w-5 h-5" />, action: () => setShowNewRepair(true) },
+                  { label: 'Nuevo cliente',    icon: <Users className="w-5 h-5" />,  action: () => setShowNewClient(true) },
+                  { label: 'Agregar repuesto', icon: <Package className="w-5 h-5" />, action: () => setShowNewPart(true) },
+                ].map(a => (
+                  <button key={a.label} onClick={a.action}
+                    className="bg-gray-800/60 border border-gray-700 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col items-center gap-3 transition-colors group">
+                    <div className="p-3 bg-blue-600/20 rounded-xl text-blue-400 group-hover:bg-blue-600/30 transition-colors">{a.icon}</div>
+                    <span className="text-sm font-medium text-gray-300">{a.label}</span>
+                  </button>
+                ))}
+              </div>
+
               <div className="bg-gray-800/60 border border-gray-700 rounded-2xl">
                 <div className="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
                   <h2 className="font-semibold">Reparaciones recientes</h2>
@@ -202,11 +283,9 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 <div className="divide-y divide-gray-700">
-                  {REPAIRS.slice(0, 4).map((r) => (
+                  {repairs.slice(0, 4).map(r => (
                     <div key={r.code} className="px-6 py-4 flex items-center gap-4">
-                      <div className="p-2 bg-gray-700 rounded-lg text-gray-400">
-                        {DEVICE_ICON[r.type] ?? <Wrench className="w-4 h-4" />}
-                      </div>
+                      <div className="p-2 bg-gray-700 rounded-lg text-gray-400">{DEVICE_ICON[r.type] ?? <Wrench className="w-4 h-4" />}</div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{r.client}</p>
                         <p className="text-gray-400 text-xs truncate">{r.device} — {r.issue}</p>
@@ -219,15 +298,11 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Alertas de inventario */}
-              {INVENTORY.filter((i) => i.stock <= i.minStock).length > 0 && (
+              {parts.filter(i => i.stock <= i.minStock).length > 0 && (
                 <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertCircle className="w-5 h-5 text-yellow-400" />
-                    <h3 className="font-semibold text-yellow-300">Stock bajo</h3>
-                  </div>
+                  <div className="flex items-center gap-2 mb-3"><AlertCircle className="w-5 h-5 text-yellow-400" /><h3 className="font-semibold text-yellow-300">Stock bajo</h3></div>
                   <div className="space-y-2">
-                    {INVENTORY.filter((i) => i.stock <= i.minStock).map((i) => (
+                    {parts.filter(i => i.stock <= i.minStock).map(i => (
                       <div key={i.sku} className="flex items-center justify-between text-sm">
                         <span className="text-gray-300">{i.name}</span>
                         <span className="text-yellow-400 font-medium">{i.stock} unidades</span>
@@ -239,30 +314,24 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── TAB: REPARACIONES ── */}
+          {/* ── REPARACIONES ── */}
           {tab === 'reparaciones' && (
             <div className="space-y-5">
-              {/* Barra de acciones */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por cliente, código o equipo..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-                  />
+                  <input type="text" placeholder="Buscar por cliente, código o equipo..." value={search} onChange={e => setSearch(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
                 <button className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2.5 rounded-xl text-sm transition-colors">
                   <Filter className="w-4 h-4" /> Filtrar
                 </button>
-                <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                <button onClick={() => setShowNewRepair(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
                   <Plus className="w-4 h-4" /> Nueva reparación
                 </button>
               </div>
 
-              {/* Tabla */}
               <div className="bg-gray-800/60 border border-gray-700 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -280,14 +349,13 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700/50">
-                      {filteredRepairs.map((r) => (
+                      {filteredRepairs.map(r => (
                         <tr key={r.code} className="hover:bg-gray-700/30 transition-colors">
                           <td className="px-5 py-4 font-mono text-xs text-blue-400">{r.code}</td>
                           <td className="px-5 py-4 font-medium">{r.client}</td>
                           <td className="px-5 py-4 hidden md:table-cell">
                             <div className="flex items-center gap-2 text-gray-300">
-                              <span className="text-gray-500">{DEVICE_ICON[r.type]}</span>
-                              {r.device}
+                              <span className="text-gray-500">{DEVICE_ICON[r.type]}</span>{r.device}
                             </div>
                           </td>
                           <td className="px-5 py-4 text-gray-400 hidden lg:table-cell max-w-xs truncate">{r.issue}</td>
@@ -297,60 +365,44 @@ export default function DashboardPage() {
                             </span>
                           </td>
                           <td className="px-5 py-4 hidden sm:table-cell">
-                            <span className={`text-xs font-medium ${PRIORITY_CONFIG[r.priority]?.color}`}>
-                              {PRIORITY_CONFIG[r.priority]?.label}
-                            </span>
+                            <span className={`text-xs font-medium ${PRIORITY_CONFIG[r.priority]?.color}`}>{PRIORITY_CONFIG[r.priority]?.label}</span>
                           </td>
-                          <td className="px-5 py-4 text-gray-300 hidden lg:table-cell">
-                            {r.cost ?? <span className="text-gray-600">Por definir</span>}
-                          </td>
+                          <td className="px-5 py-4 text-gray-300 hidden lg:table-cell">{r.cost ?? <span className="text-gray-600">Por definir</span>}</td>
                           <td className="px-5 py-4 text-gray-400 text-xs hidden md:table-cell">{r.date}</td>
                           <td className="px-5 py-4">
-                            <button className="text-gray-500 hover:text-gray-300 transition-colors">
-                              <MoreVertical className="w-4 h-4" />
-                            </button>
+                            <button className="text-gray-500 hover:text-gray-300 transition-colors"><MoreVertical className="w-4 h-4" /></button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                {filteredRepairs.length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
-                    No se encontraron reparaciones
-                  </div>
-                )}
+                {filteredRepairs.length === 0 && <div className="text-center py-12 text-gray-500">No se encontraron reparaciones</div>}
               </div>
             </div>
           )}
 
-          {/* ── TAB: CLIENTES ── */}
+          {/* ── CLIENTES ── */}
           {tab === 'clientes' && (
             <div className="space-y-5">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Buscar clientes..."
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-                  />
+                  <input type="text" placeholder="Buscar clientes..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
-                <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                <button onClick={() => setShowNewClient(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
                   <Plus className="w-4 h-4" /> Nuevo cliente
                 </button>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {CLIENTS.map((c) => (
+                {clients.map(c => (
                   <div key={c.phone} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5 hover:border-gray-600 transition-colors">
                     <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-semibold">
-                        {c.name[0]}
-                      </div>
-                      <button className="text-gray-500 hover:text-gray-300 transition-colors">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                      <div className="w-10 h-10 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-semibold">{c.name[0]}</div>
+                      <button className="text-gray-500 hover:text-gray-300 transition-colors"><MoreVertical className="w-4 h-4" /></button>
                     </div>
                     <h3 className="font-semibold">{c.name}</h3>
                     <p className="text-gray-400 text-sm mt-0.5">{c.phone}</p>
@@ -365,19 +417,17 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── TAB: INVENTARIO ── */}
+          {/* ── INVENTARIO ── */}
           {tab === 'inventario' && (
             <div className="space-y-5">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Buscar repuestos..."
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-                  />
+                  <input type="text" placeholder="Buscar repuestos..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
-                <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                <button onClick={() => setShowNewPart(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
                   <Plus className="w-4 h-4" /> Agregar repuesto
                 </button>
               </div>
@@ -396,36 +446,30 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700/50">
-                      {INVENTORY.map((item) => {
-                        const isLow = item.stock <= item.minStock
+                      {parts.map((item, idx) => {
+                        const isLow = item.stock <= item.minStock && item.stock > 0
                         const isOut = item.stock === 0
                         return (
-                          <tr key={item.sku} className="hover:bg-gray-700/30 transition-colors">
+                          <tr key={idx} className="hover:bg-gray-700/30 transition-colors">
                             <td className="px-5 py-4 font-medium">{item.name}</td>
                             <td className="px-5 py-4 font-mono text-xs text-gray-400 hidden sm:table-cell">{item.sku}</td>
                             <td className="px-5 py-4 text-center">
                               <div className="flex items-center justify-center gap-2">
-                                <button className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-xs transition-colors">−</button>
-                                <span className={`font-semibold w-8 text-center ${isOut ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-white'}`}>
-                                  {item.stock}
-                                </span>
-                                <button className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-xs transition-colors">+</button>
+                                <button onClick={() => setParts(p => p.map((x, i) => i === idx ? { ...x, stock: Math.max(0, x.stock - 1) } : x))}
+                                  className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-xs transition-colors">−</button>
+                                <span className={`font-semibold w-8 text-center ${isOut ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-white'}`}>{item.stock}</span>
+                                <button onClick={() => setParts(p => p.map((x, i) => i === idx ? { ...x, stock: x.stock + 1 } : x))}
+                                  className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-xs transition-colors">+</button>
                               </div>
                             </td>
                             <td className="px-5 py-4 text-gray-300 hidden md:table-cell">{item.salePrice}</td>
                             <td className="px-5 py-4">
-                              {isOut ? (
-                                <span className="text-xs px-2.5 py-1 rounded-full bg-red-900/50 text-red-300 font-medium">Agotado</span>
-                              ) : isLow ? (
-                                <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-900/50 text-yellow-300 font-medium">Stock bajo</span>
-                              ) : (
-                                <span className="text-xs px-2.5 py-1 rounded-full bg-green-900/50 text-green-300 font-medium">OK</span>
-                              )}
+                              {isOut  ? <span className="text-xs px-2.5 py-1 rounded-full bg-red-900/50 text-red-300 font-medium">Agotado</span>
+                              : isLow ? <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-900/50 text-yellow-300 font-medium">Stock bajo</span>
+                              :         <span className="text-xs px-2.5 py-1 rounded-full bg-green-900/50 text-green-300 font-medium">OK</span>}
                             </td>
                             <td className="px-5 py-4">
-                              <button className="text-gray-500 hover:text-gray-300 transition-colors">
-                                <MoreVertical className="w-4 h-4" />
-                              </button>
+                              <button className="text-gray-500 hover:text-gray-300 transition-colors"><MoreVertical className="w-4 h-4" /></button>
                             </td>
                           </tr>
                         )
@@ -436,9 +480,136 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-
         </main>
       </div>
+
+      {/* ── MODAL NUEVA REPARACIÓN ── */}
+      {showNewRepair && (
+        <Modal title="Nueva reparación" onClose={() => setShowNewRepair(false)}>
+          <form onSubmit={submitRepair} className="space-y-4">
+            <Field label="Cliente *">
+              <input required value={repairForm.client} onChange={e => setRepairForm(f => ({ ...f, client: e.target.value }))}
+                placeholder="Nombre del cliente" className={inputCls} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Tipo de equipo">
+                <select value={repairForm.deviceType} onChange={e => setRepairForm(f => ({ ...f, deviceType: e.target.value }))} className={selectCls}>
+                  <option value="laptop">Laptop</option>
+                  <option value="pc">PC escritorio</option>
+                  <option value="playstation">PlayStation</option>
+                  <option value="other">Otro</option>
+                </select>
+              </Field>
+              <Field label="Prioridad">
+                <select value={repairForm.priority} onChange={e => setRepairForm(f => ({ ...f, priority: e.target.value }))} className={selectCls}>
+                  <option value="low">Baja</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                </select>
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Marca">
+                <input value={repairForm.deviceBrand} onChange={e => setRepairForm(f => ({ ...f, deviceBrand: e.target.value }))}
+                  placeholder="HP, Sony, etc." className={inputCls} />
+              </Field>
+              <Field label="Modelo">
+                <input value={repairForm.deviceModel} onChange={e => setRepairForm(f => ({ ...f, deviceModel: e.target.value }))}
+                  placeholder="Pavilion 15, PS5..." className={inputCls} />
+              </Field>
+            </div>
+            <Field label="Problema reportado *">
+              <textarea required rows={3} value={repairForm.issue} onChange={e => setRepairForm(f => ({ ...f, issue: e.target.value }))}
+                placeholder="Describe el problema del equipo..." className={inputCls + ' resize-none'} />
+            </Field>
+            <Field label="Costo estimado ($)">
+              <input type="number" value={repairForm.cost} onChange={e => setRepairForm(f => ({ ...f, cost: e.target.value }))}
+                placeholder="25000" className={inputCls} />
+            </Field>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setShowNewRepair(false)}
+                className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
+              <button type="submit"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                Crear reparación
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL NUEVO CLIENTE ── */}
+      {showNewClient && (
+        <Modal title="Nuevo cliente" onClose={() => setShowNewClient(false)}>
+          <form onSubmit={submitClient} className="space-y-4">
+            <Field label="Nombre completo *">
+              <input required value={clientForm.name} onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Juan García" className={inputCls} />
+            </Field>
+            <Field label="Teléfono / WhatsApp *">
+              <input required value={clientForm.phone} onChange={e => setClientForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="+54 9 11 XXXX XXXX" className={inputCls} />
+            </Field>
+            <Field label="Email">
+              <input type="email" value={clientForm.email} onChange={e => setClientForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="juan@email.com" className={inputCls} />
+            </Field>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setShowNewClient(false)}
+                className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
+              <button type="submit"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                Crear cliente
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL NUEVO REPUESTO ── */}
+      {showNewPart && (
+        <Modal title="Agregar repuesto" onClose={() => setShowNewPart(false)}>
+          <form onSubmit={submitPart} className="space-y-4">
+            <Field label="Nombre del repuesto *">
+              <input required value={partForm.name} onChange={e => setPartForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Chip HDMI PS5" className={inputCls} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="SKU / Código">
+                <input value={partForm.sku} onChange={e => setPartForm(f => ({ ...f, sku: e.target.value }))}
+                  placeholder="PS5-HDMI-001" className={inputCls} />
+              </Field>
+              <Field label="Marca">
+                <input value={partForm.brand} onChange={e => setPartForm(f => ({ ...f, brand: e.target.value }))}
+                  placeholder="Sony, Kingston..." className={inputCls} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Stock inicial *">
+                <input required type="number" min="0" value={partForm.stock} onChange={e => setPartForm(f => ({ ...f, stock: e.target.value }))}
+                  placeholder="5" className={inputCls} />
+              </Field>
+              <Field label="Stock mínimo">
+                <input type="number" min="0" value={partForm.minStock} onChange={e => setPartForm(f => ({ ...f, minStock: e.target.value }))}
+                  placeholder="2" className={inputCls} />
+              </Field>
+            </div>
+            <Field label="Precio de venta ($)">
+              <input type="number" value={partForm.salePrice} onChange={e => setPartForm(f => ({ ...f, salePrice: e.target.value }))}
+                placeholder="35000" className={inputCls} />
+            </Field>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setShowNewPart(false)}
+                className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
+              <button type="submit"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                Agregar repuesto
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
     </div>
   )
 }
