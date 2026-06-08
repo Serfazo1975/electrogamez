@@ -12,9 +12,9 @@ import Documento, { DocData } from './Documento'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type Repair = { code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null }
-type Client = { name: string; phone: string; email: string; repairs: number; lastRepair: string }
-type Part   = { name: string; sku: string; stock: number; minStock: number; salePrice: string }
+type Repair = { id?: string; code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null }
+type Client = { id?: string; name: string; phone: string; email: string; repairs: number; lastRepair: string }
+type Part   = { id?: string; name: string; sku: string; stock: number; minStock: number; salePrice: string }
 
 // ── Datos iniciales ───────────────────────────────────────────────────────────
 
@@ -69,29 +69,16 @@ function today() {
   return new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-// ── Persistencia en el navegador (localStorage) ───────────────────────────────
-// Guarda los datos para que sobrevivan al cerrar y reabrir la página.
+// ── Acceso a la API ───────────────────────────────────────────────────────────
 
-function usePersistentState<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-  const [state, setState] = useState<T>(initial)
-  const [loaded, setLoaded] = useState(false)
-
-  // Cargar al montar (solo en el cliente)
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(key)
-      if (raw !== null) setState(JSON.parse(raw))
-    } catch { /* ignorar JSON inválido */ }
-    setLoaded(true)
-  }, [key])
-
-  // Guardar en cada cambio, una vez cargado
-  useEffect(() => {
-    if (!loaded) return
-    try { localStorage.setItem(key, JSON.stringify(state)) } catch { /* cuota llena */ }
-  }, [key, state, loaded])
-
-  return [state, setState]
+async function apiJSON(method: string, url: string, body?: unknown) {
+  const res = await fetch(url, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  if (!res.ok) throw new Error(String(res.status))
+  return res.json()
 }
 
 function nextCode(repairs: Repair[]) {
@@ -139,9 +126,27 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [repairs, setRepairs] = usePersistentState<Repair[]>('eg_repairs', INITIAL_REPAIRS)
-  const [clients, setClients] = usePersistentState<Client[]>('eg_clients', INITIAL_CLIENTS)
-  const [parts,   setParts]   = usePersistentState<Part[]>('eg_parts', INITIAL_PARTS)
+  const [repairs, setRepairs] = useState<Repair[]>(INITIAL_REPAIRS)
+  const [clients, setClients] = useState<Client[]>(INITIAL_CLIENTS)
+  const [parts,   setParts]   = useState<Part[]>(INITIAL_PARTS)
+  const [dbOn, setDbOn] = useState(false)   // true cuando los datos vienen de la base
+  const [saving, setSaving] = useState(false)
+
+  // Cargar datos reales desde la base al abrir el dashboard
+  useEffect(() => {
+    let active = true
+    Promise.all([
+      apiJSON('GET', '/api/repairs'),
+      apiJSON('GET', '/api/clients'),
+      apiJSON('GET', '/api/parts'),
+    ])
+      .then(([r, c, p]) => {
+        if (!active) return
+        setRepairs(r); setClients(c); setParts(p); setDbOn(true)
+      })
+      .catch(() => { /* sin base: se mantienen los datos de ejemplo (modo local) */ })
+    return () => { active = false }
+  }, [])
 
   // Modales
   const [showNewRepair,  setShowNewRepair]  = useState(false)
@@ -195,11 +200,12 @@ export default function DashboardPage() {
     r.device.toLowerCase().includes(search.toLowerCase())
   )
 
-  function submitRepair(e: React.FormEvent) {
+  async function submitRepair(e: React.FormEvent) {
     e.preventDefault()
+    setSaving(true)
     const device = [repairForm.deviceBrand, repairForm.deviceModel].filter(Boolean).join(' ') || repairForm.deviceType
-    setRepairs(prev => [{
-      code: nextCode(prev),
+    const local: Repair = {
+      code: nextCode(repairs),
       client: repairForm.client,
       device,
       type: repairForm.deviceType,
@@ -208,32 +214,68 @@ export default function DashboardPage() {
       priority: repairForm.priority,
       date: today(),
       cost: repairForm.cost ? `$${repairForm.cost}` : null,
-    }, ...prev])
+    }
+    try {
+      const created = dbOn ? await apiJSON('POST', '/api/repairs', repairForm) : local
+      setRepairs(prev => [created, ...prev])
+    } catch {
+      setRepairs(prev => [local, ...prev])
+    } finally {
+      setSaving(false)
+    }
     setRepairForm({ client: '', deviceType: 'laptop', deviceBrand: '', deviceModel: '', issue: '', priority: 'medium', cost: '' })
     setShowNewRepair(false)
     setTab('reparaciones')
   }
 
-  function submitClient(e: React.FormEvent) {
+  async function submitClient(e: React.FormEvent) {
     e.preventDefault()
-    setClients(prev => [{ ...clientForm, repairs: 0, lastRepair: today() }, ...prev])
+    setSaving(true)
+    const local: Client = { ...clientForm, repairs: 0, lastRepair: today() }
+    try {
+      const created = dbOn ? await apiJSON('POST', '/api/clients', clientForm) : local
+      setClients(prev => [created, ...prev])
+    } catch {
+      setClients(prev => [local, ...prev])
+    } finally {
+      setSaving(false)
+    }
     setClientForm({ name: '', phone: '', email: '' })
     setShowNewClient(false)
     setTab('clientes')
   }
 
-  function submitPart(e: React.FormEvent) {
+  async function submitPart(e: React.FormEvent) {
     e.preventDefault()
-    setParts(prev => [{
+    setSaving(true)
+    const local: Part = {
       name: partForm.name,
       sku: partForm.sku,
       stock: parseInt(partForm.stock) || 0,
       minStock: parseInt(partForm.minStock) || 2,
       salePrice: partForm.salePrice ? `$${partForm.salePrice}` : '-',
-    }, ...prev])
+    }
+    try {
+      const created = dbOn ? await apiJSON('POST', '/api/parts', partForm) : local
+      setParts(prev => [created, ...prev])
+    } catch {
+      setParts(prev => [local, ...prev])
+    } finally {
+      setSaving(false)
+    }
     setPartForm({ name: '', sku: '', brand: '', stock: '', minStock: '2', salePrice: '' })
     setShowNewPart(false)
     setTab('inventario')
+  }
+
+  // Cambiar stock (persiste en la base si está conectada)
+  function changeStock(idx: number, delta: number) {
+    const part = parts[idx]
+    const newStock = Math.max(0, part.stock + delta)
+    setParts(p => p.map((x, i) => i === idx ? { ...x, stock: newStock } : x))
+    if (dbOn && part.id) {
+      apiJSON('PATCH', `/api/parts/${part.id}`, { stock: newStock }).catch(() => {})
+    }
   }
 
   const STATS = [
@@ -355,7 +397,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2 mb-3"><AlertCircle className="w-5 h-5 text-yellow-400" /><h3 className="font-semibold text-yellow-300">Stock bajo</h3></div>
                   <div className="space-y-2">
                     {parts.filter(i => i.stock <= i.minStock).map(i => (
-                      <div key={i.sku} className="flex items-center justify-between text-sm">
+                      <div key={i.id ?? i.sku ?? i.name} className="flex items-center justify-between text-sm">
                         <span className="text-gray-300">{i.name}</span>
                         <span className="text-yellow-400 font-medium">{i.stock} unidades</span>
                       </div>
@@ -460,7 +502,7 @@ export default function DashboardPage() {
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {clients.map(c => (
-                  <div key={c.phone} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5 hover:border-gray-600 transition-colors">
+                  <div key={c.id ?? c.phone ?? c.name} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5 hover:border-gray-600 transition-colors">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-10 h-10 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-semibold">{c.name[0]}</div>
                       <button className="text-gray-500 hover:text-gray-300 transition-colors"><MoreVertical className="w-4 h-4" /></button>
@@ -516,10 +558,10 @@ export default function DashboardPage() {
                             <td className="px-5 py-4 font-mono text-xs text-gray-400 hidden sm:table-cell">{item.sku}</td>
                             <td className="px-5 py-4 text-center">
                               <div className="flex items-center justify-center gap-2">
-                                <button onClick={() => setParts(p => p.map((x, i) => i === idx ? { ...x, stock: Math.max(0, x.stock - 1) } : x))}
+                                <button onClick={() => changeStock(idx, -1)}
                                   className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-xs transition-colors">−</button>
                                 <span className={`font-semibold w-8 text-center ${isOut ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-white'}`}>{item.stock}</span>
-                                <button onClick={() => setParts(p => p.map((x, i) => i === idx ? { ...x, stock: x.stock + 1 } : x))}
+                                <button onClick={() => changeStock(idx, 1)}
                                   className="w-6 h-6 rounded bg-gray-700 hover:bg-gray-600 text-xs transition-colors">+</button>
                               </div>
                             </td>
@@ -590,9 +632,9 @@ export default function DashboardPage() {
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowNewRepair(false)}
                 className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
-              <button type="submit"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                Crear reparación
+              <button type="submit" disabled={saving}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:opacity-50 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                {saving ? 'Guardando...' : 'Crear reparación'}
               </button>
             </div>
           </form>
@@ -618,9 +660,9 @@ export default function DashboardPage() {
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowNewClient(false)}
                 className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
-              <button type="submit"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                Crear cliente
+              <button type="submit" disabled={saving}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:opacity-50 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                {saving ? 'Guardando...' : 'Crear cliente'}
               </button>
             </div>
           </form>
@@ -662,9 +704,9 @@ export default function DashboardPage() {
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowNewPart(false)}
                 className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
-              <button type="submit"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                Agregar repuesto
+              <button type="submit" disabled={saving}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:opacity-50 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                {saving ? 'Guardando...' : 'Agregar repuesto'}
               </button>
             </div>
           </form>
