@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Download, Image as ImageIcon, MessageCircle, Mail, Loader2, CheckCircle2, Copy } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Download, Image as ImageIcon, MessageCircle, Mail, Loader2, CheckCircle2, Copy, Star } from 'lucide-react'
 import { captureCanvas, canvasToPdf, downloadCanvasJpg, tryShareFile } from '@/lib/docExport'
+
+const REVIEW_URL = 'https://maps.app.goo.gl/4H4MGMC7uVY5sKeY9'
 
 const NEG = {
   razonSocial: 'ELECTROGAMEZ SERVICIO TECNICO RG',
@@ -60,7 +62,16 @@ function buildMessage(d: ReceiptData) {
 export default function Comprobante({ data, onClose }: { data: ReceiptData; onClose: () => void }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [qr, setQr] = useState<string>('')
   const fileBase = `Comprobante-${data.code}`
+
+  // Generar el QR de reseñas (Google Maps) como imagen local
+  useEffect(() => {
+    import('qrcode').then(QRCode => {
+      QRCode.toDataURL(REVIEW_URL, { margin: 1, width: 240, errorCorrectionLevel: 'M' })
+        .then(setQr).catch(() => {})
+    })
+  }, [])
   const equipo = [data.deviceBrand, data.deviceModel].filter(Boolean).join(' ') || '—'
 
   function copyCode() {
@@ -208,6 +219,21 @@ export default function Comprobante({ data, onClose }: { data: ReceiptData; onCl
             <p className="text-sm font-semibold text-blue-700">{NEG.web}/seguimiento</p>
             <p className="text-[11px] text-gray-500 mt-0.5">con el código <b>{data.code}</b></p>
           </div>
+
+          {/* Reseña en Google */}
+          <a href={REVIEW_URL} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 hover:bg-amber-100 transition-colors">
+            {qr
+              ? <img src={qr} alt="QR reseña Google" className="w-20 h-20 flex-shrink-0 rounded" />
+              : <div className="w-20 h-20 flex-shrink-0 rounded bg-gray-100 animate-pulse" />}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 text-amber-500">
+                {[0,1,2,3,4].map(i => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
+              </div>
+              <p className="text-sm font-semibold text-gray-900 mt-1">¿Te gustó nuestro servicio?</p>
+              <p className="text-xs text-gray-600">Escaneá el código y dejanos tu reseña en Google. ¡Nos ayuda muchísimo!</p>
+            </div>
+          </a>
         </div>
 
         {/* Pie */}
