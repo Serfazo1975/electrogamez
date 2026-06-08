@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Wrench, Users, Package, LogOut,
   Plus, Search, Filter, MoreVertical, TrendingUp,
@@ -69,6 +69,31 @@ function today() {
   return new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
+// ── Persistencia en el navegador (localStorage) ───────────────────────────────
+// Guarda los datos para que sobrevivan al cerrar y reabrir la página.
+
+function usePersistentState<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+  const [state, setState] = useState<T>(initial)
+  const [loaded, setLoaded] = useState(false)
+
+  // Cargar al montar (solo en el cliente)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw !== null) setState(JSON.parse(raw))
+    } catch { /* ignorar JSON inválido */ }
+    setLoaded(true)
+  }, [key])
+
+  // Guardar en cada cambio, una vez cargado
+  useEffect(() => {
+    if (!loaded) return
+    try { localStorage.setItem(key, JSON.stringify(state)) } catch { /* cuota llena */ }
+  }, [key, state, loaded])
+
+  return [state, setState]
+}
+
 function nextCode(repairs: Repair[]) {
   const nums = repairs.map(r => parseInt(r.code.split('-')[2] ?? '0'))
   const next = Math.max(...nums, 0) + 1
@@ -114,9 +139,9 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const [repairs, setRepairs] = useState<Repair[]>(INITIAL_REPAIRS)
-  const [clients, setClients] = useState<Client[]>(INITIAL_CLIENTS)
-  const [parts,   setParts]   = useState<Part[]>(INITIAL_PARTS)
+  const [repairs, setRepairs] = usePersistentState<Repair[]>('eg_repairs', INITIAL_REPAIRS)
+  const [clients, setClients] = usePersistentState<Client[]>('eg_clients', INITIAL_CLIENTS)
+  const [parts,   setParts]   = usePersistentState<Part[]>('eg_parts', INITIAL_PARTS)
 
   // Modales
   const [showNewRepair,  setShowNewRepair]  = useState(false)
