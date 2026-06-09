@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Download, MessageCircle, FileText, Plus, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X, Download, MessageCircle, FileText, Plus, Loader2, Star } from 'lucide-react'
+
+const REVIEW_URL = 'https://maps.app.goo.gl/4H4MGMC7uVY5sKeY9'
 
 const NEG = {
   razonSocial:  'ELECTROGAMEZ SERVICIO TECNICO RG',
@@ -78,7 +80,15 @@ const inp = 'bg-transparent focus:outline-none border-b border-dashed border-gra
 export default function Documento({ data, onClose }: { data: DocData; onClose: () => void }) {
   const [doc, setDoc] = useState<DocData>(data)
   const [busy, setBusy] = useState<'pdf' | 'wa' | null>(null)
+  const [reviewQr, setReviewQr] = useState('')
   const esF = doc.tipo === 'factura'
+
+  useEffect(() => {
+    import('qrcode').then(QRCode =>
+      QRCode.toDataURL(REVIEW_URL, { margin: 1, width: 200, errorCorrectionLevel: 'M' })
+        .then(setReviewQr).catch(() => {})
+    )
+  }, [])
 
   const subtotal = doc.items.reduce((s, i) => {
     const b = (i.bonif ?? 0) / 100
@@ -432,6 +442,25 @@ export default function Documento({ data, onClose }: { data: DocData; onClose: (
               <p className="font-bold mt-1">Comprobante {esF ? 'Autorizado' : 'no fiscal'}</p>
             </div>
           </div>
+
+          {/* QR de reseña Google — solo en factura */}
+          {esF && (
+            <div style={{ marginTop: 16, borderTop: '1px solid #e5e7eb', paddingTop: 12 }}>
+              <a href={REVIEW_URL} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 hover:bg-amber-100 transition-colors">
+                {reviewQr
+                  ? <img src={reviewQr} alt="QR reseña Google" style={{ width: 72, height: 72, flexShrink: 0 }} className="rounded" />
+                  : <div style={{ width: 72, height: 72, flexShrink: 0 }} className="bg-gray-100 rounded animate-pulse" />}
+                <div>
+                  <div className="flex items-center gap-1 text-amber-500 mb-1">
+                    {[0,1,2,3,4].map(i => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900">¿Te gustó nuestro servicio?</p>
+                  <p className="text-xs text-gray-600">Escaneá el código y dejanos tu reseña en Google</p>
+                </div>
+              </a>
+            </div>
+          )}
 
         </div>
       </div>

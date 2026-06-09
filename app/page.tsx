@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Monitor, Gamepad2, Wrench, Shield, Clock, Star,
   Mail, MapPin, Zap, CheckCircle,
   Menu, X, Search, Cpu,
   MessageCircle
 } from 'lucide-react'
+
+const REVIEW_URL = 'https://maps.app.goo.gl/4H4MGMC7uVY5sKeY9'
 
 const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
@@ -85,6 +87,14 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', message: '' })
   const [formSent, setFormSent] = useState(false)
+  const [reviewQr, setReviewQr] = useState('')
+
+  useEffect(() => {
+    import('qrcode').then(QRCode =>
+      QRCode.toDataURL(REVIEW_URL, { margin: 1, width: 220, errorCorrectionLevel: 'M' })
+        .then(setReviewQr).catch(() => {})
+    )
+  }, [])
 
   function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -315,6 +325,35 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── RESEÑA GOOGLE ── */}
+      <section className="py-16 px-4">
+        <div className="max-w-2xl mx-auto">
+          <a
+            href={REVIEW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col sm:flex-row items-center gap-6 bg-amber-950/30 border border-amber-700/40 hover:border-amber-500/60 rounded-2xl px-8 py-7 transition-all group"
+          >
+            <div className="flex-shrink-0">
+              {reviewQr
+                ? <img src={reviewQr} alt="QR reseña Google" className="w-24 h-24 rounded-lg" />
+                : <div className="w-24 h-24 rounded-lg bg-gray-800 animate-pulse" />}
+            </div>
+            <div className="text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-1 mb-2">
+                {[0,1,2,3,4].map(i => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
+              </div>
+              <p className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">
+                ¿Te gustó nuestro servicio?
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                Escaneá el QR o tocá acá para dejarnos tu reseña en Google. ¡Nos ayuda un montón!
+              </p>
+            </div>
+          </a>
         </div>
       </section>
 

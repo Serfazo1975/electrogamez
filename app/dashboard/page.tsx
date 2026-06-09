@@ -6,7 +6,7 @@ import {
   Plus, Search, Filter, MoreVertical, TrendingUp,
   Clock, CheckCircle2, AlertCircle, Gamepad2, Monitor,
   Laptop, ChevronRight, Bell, Settings, Menu, X,
-  FileText, Receipt, ClipboardList
+  FileText, Receipt, ClipboardList, MessageCircle
 } from 'lucide-react'
 import Documento, { DocData } from './Documento'
 import Comprobante, { ReceiptData } from './Comprobante'
@@ -120,6 +120,96 @@ const inputCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2
 const selectCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
 
 type Tab = 'resumen' | 'reparaciones' | 'clientes' | 'inventario'
+type PendingNotif = { repair: Repair; phone: string; message: string }
+
+const SEGUIMIENTO = 'https://electrogamez.netlify.app/seguimiento'
+
+const NOTIF: Record<string, (r: Repair) => string> = {
+  diagnosing: r => [
+    `Hola ${r.client}! 👋`,
+    '',
+    `Queríamos avisarte que tu *${r.device}* ya lo estamos analizando.`,
+    '',
+    `🔍 Estado actual: *En diagnóstico*`,
+    `📋 Código de seguimiento: *${r.code}*`,
+    '',
+    `Podés ver el estado en cualquier momento en:`,
+    SEGUIMIENTO,
+    '',
+    `En cuanto tengamos el diagnóstico completo te avisamos. 🔧`,
+    '',
+    `*ElectroGamez Servicio Técnico*`,
+    `📍 Los Pozos 458, Río Gallegos`,
+    `📱 +54 9 11 5697 5880`,
+  ].join('\n'),
+
+  waiting_parts: r => [
+    `Hola ${r.client}! 👋`,
+    '',
+    `Novedades sobre tu *${r.device}*:`,
+    '',
+    `⏳ Estado actual: *Esperando repuestos*`,
+    `📋 Código: *${r.code}*`,
+    '',
+    `Ya diagnosticamos el problema. Estamos esperando que lleguen los repuestos necesarios. Apenas los tengamos arrancamos la reparación.`,
+    '',
+    `Seguí el estado en: ${SEGUIMIENTO}`,
+    '',
+    `*ElectroGamez Servicio Técnico* · 📱 +54 9 11 5697 5880`,
+  ].join('\n'),
+
+  in_progress: r => [
+    `Hola ${r.client}! 👋`,
+    '',
+    `¡Buenas noticias! Tu *${r.device}* ya está en reparación. 🔧`,
+    '',
+    `⚙️ Estado actual: *En reparación*`,
+    `📋 Código: *${r.code}*`,
+    '',
+    `Nuestro técnico ya está trabajando en él. En cuanto esté listo te avisamos.`,
+    `Seguí el avance en: ${SEGUIMIENTO}`,
+    '',
+    `*ElectroGamez Servicio Técnico* · 📱 +54 9 11 5697 5880`,
+  ].join('\n'),
+
+  ready: r => [
+    `Hola ${r.client}! 🎉`,
+    '',
+    `¡Tu *${r.device}* está *LISTO para retirar*!`,
+    '',
+    `✅ Estado: *Listo para retirar*`,
+    `📋 Código: *${r.code}*`,
+    '',
+    `Podés pasar a retirarlo por nuestro local:`,
+    `📍 Los Pozos 458, Río Gallegos`,
+    `🕐 Lunes a Viernes 10:00–19:00 · Sábados 10:00–14:00`,
+    '',
+    `Recordá traer este código al retirar. 😊`,
+    '',
+    `*ElectroGamez Servicio Técnico* · 📱 +54 9 11 5697 5880`,
+  ].join('\n'),
+
+  completed: r => [
+    `Hola ${r.client}! 👋`,
+    '',
+    `Tu reparación del *${r.device}* quedó registrada como *Completada*.`,
+    `📋 Código: *${r.code}*`,
+    '',
+    `¡Gracias por elegirnos! Si el equipo tiene algún inconveniente no dudes en contactarnos.`,
+    '',
+    `*ElectroGamez Servicio Técnico* · 📱 +54 9 11 5697 5880`,
+  ].join('\n'),
+
+  cancelled: r => [
+    `Hola ${r.client}!`,
+    '',
+    `Te informamos que la reparación de tu *${r.device}* (código *${r.code}*) fue cancelada.`,
+    '',
+    `Si querés consultar el motivo o reagendar, escribinos por acá.`,
+    '',
+    `*ElectroGamez Servicio Técnico* · 📱 +54 9 11 5697 5880`,
+  ].join('\n'),
+}
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -160,6 +250,9 @@ export default function DashboardPage() {
 
   // Cambio de estado inline
   const [statusDropdown, setStatusDropdown] = useState<string | null>(null)
+
+  // Notificación WhatsApp pendiente tras cambio de estado
+  const [pendingNotif, setPendingNotif] = useState<PendingNotif | null>(null)
 
   // Modal de configuración
   const [showConfig, setShowConfig] = useState(false)
@@ -314,10 +407,16 @@ export default function DashboardPage() {
 
   // Cambiar estado de una reparación
   async function changeStatus(repair: Repair, newStatus: string) {
-    setRepairs(prev => prev.map(r => r.code === repair.code ? { ...r, status: newStatus } : r))
+    const updated = { ...repair, status: newStatus }
+    setRepairs(prev => prev.map(r => r.code === repair.code ? updated : r))
     setStatusDropdown(null)
     if (dbOn && repair.id) {
       apiJSON('PATCH', `/api/repairs/${repair.id}`, { status: newStatus }).catch(() => {})
+    }
+    const cliente = clients.find(c => c.name === repair.client)
+    const phone = cliente?.phone?.trim()
+    if (phone && NOTIF[newStatus]) {
+      setPendingNotif({ repair: updated, phone, message: NOTIF[newStatus](updated) })
     }
   }
 
@@ -869,6 +968,54 @@ export default function DashboardPage() {
             </button>
           </div>
         </Modal>
+      )}
+
+      {/* ── Modal: notificación WhatsApp al cliente ── */}
+      {pendingNotif && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+              <div className="flex items-center gap-2 text-green-400">
+                <MessageCircle className="w-5 h-5" />
+                <span className="font-semibold">Notificar al cliente</span>
+              </div>
+              <button onClick={() => setPendingNotif(null)} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <span>Para:</span>
+                <span className="font-medium text-white">{pendingNotif.repair.client}</span>
+                <span className="text-green-400 font-mono text-xs ml-auto">{pendingNotif.phone}</span>
+              </div>
+              <textarea
+                rows={10}
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white resize-none focus:outline-none focus:border-green-500 transition-colors font-mono leading-relaxed"
+                value={pendingNotif.message}
+                onChange={e => setPendingNotif(n => n ? { ...n, message: e.target.value } : n)}
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    const tel = pendingNotif.phone.replace(/\D/g, '')
+                    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(pendingNotif.message)}`, '_blank')
+                    setPendingNotif(null)
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" /> Enviar por WhatsApp
+                </button>
+                <button
+                  onClick={() => setPendingNotif(null)}
+                  className="px-5 border border-gray-700 hover:border-gray-500 rounded-xl text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  Omitir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
