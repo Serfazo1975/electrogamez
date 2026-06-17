@@ -146,3 +146,79 @@ model Notification {
   error     String?
   createdAt DateTime @default(now())
 }
+
+// ─── Portal de Descargas ──────────────────────────────────────────────────────
+
+model PortalUser {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      String   @default("member") // "admin" | "member"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  sessions  PortalSession[]
+  downloads DownloadLog[]
+}
+
+model PortalSession {
+  id        String     @id @default(cuid())
+  userId    String
+  user      PortalUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String     @unique @default(cuid())
+  expiresAt DateTime
+  createdAt DateTime   @default(now())
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  icon        String?
+  description String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  projects    Project[]
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String
+  thumbnail   String?
+  version     String?
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  tags        String[]
+  featured    Boolean   @default(false)
+  published   Boolean   @default(true)
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  files       ProjectFile[]
+  downloads   DownloadLog[]
+}
+
+model ProjectFile {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  fileUrl   String
+  fileSize  String?
+  platform  String?
+  createdAt DateTime @default(now())
+  downloads DownloadLog[]
+}
+
+model DownloadLog {
+  id        String       @id @default(cuid())
+  userId    String
+  user      PortalUser   @relation(fields: [userId], references: [id])
+  projectId String
+  project   Project      @relation(fields: [projectId], references: [id])
+  fileId    String?
+  file      ProjectFile? @relation(fields: [fileId], references: [id])
+  createdAt DateTime     @default(now())
+}
