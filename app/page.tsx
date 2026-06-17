@@ -5,15 +5,108 @@ import {
   Monitor, Gamepad2, Wrench, Shield, Clock, Star,
   Mail, MapPin, Zap, CheckCircle,
   Menu, X, Search, Cpu,
-  MessageCircle
+  MessageCircle, Download, FileDown, Code2, Globe,
+  ExternalLink, FolderOpen, Laptop
 } from 'lucide-react'
 
 const REVIEW_URL = 'https://maps.app.goo.gl/4H4MGMC7uVY5sKeY9'
 
 const NAV_LINKS = [
-  { label: 'Servicios', href: '#servicios' },
+  { label: 'Servicios',  href: '#servicios'  },
+  { label: 'Proyectos',  href: '#proyectos'  },
+  { label: 'Descargas',  href: '#descargas'  },
   { label: 'Testimonios', href: '#testimonios' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Contacto',   href: '#contacto'   },
+]
+
+const PROJECTS = [
+  {
+    icon: <Monitor className="w-7 h-7" />,
+    title: 'ElectroGamez System',
+    desc: 'Sistema de gestión interna para talleres de reparación. Registro de reparaciones, clientes, inventario, facturación AFIP y comprobantes con código de seguimiento.',
+    tags: ['Next.js', 'PostgreSQL', 'Tailwind'],
+    color: 'from-blue-600/20 to-blue-600/5',
+    border: 'hover:border-blue-500/50',
+    iconColor: 'text-blue-400 bg-blue-600/20',
+    link: null,
+  },
+  {
+    icon: <Search className="w-7 h-7" />,
+    title: 'Seguimiento público de reparaciones',
+    desc: 'Página pública donde los clientes pueden consultar el estado de su reparación en tiempo real ingresando su código único.',
+    tags: ['Next.js', 'API REST', 'Mobile-first'],
+    color: 'from-cyan-600/20 to-cyan-600/5',
+    border: 'hover:border-cyan-500/50',
+    iconColor: 'text-cyan-400 bg-cyan-600/20',
+    link: '/seguimiento',
+  },
+  {
+    icon: <Gamepad2 className="w-7 h-7" />,
+    title: 'Landing ElectroGamez',
+    desc: 'Sitio web institucional con servicios, testimonios, formulario de contacto vía WhatsApp y sistema de reseñas Google. Diseño responsivo optimizado para móvil.',
+    tags: ['Next.js', 'Netlify', 'SEO'],
+    color: 'from-violet-600/20 to-violet-600/5',
+    border: 'hover:border-violet-500/50',
+    iconColor: 'text-violet-400 bg-violet-600/20',
+    link: '/',
+  },
+]
+
+const DOWNLOADS = [
+  {
+    icon: <Laptop className="w-6 h-6" />,
+    title: 'HWiNFO64',
+    desc: 'Diagnóstico completo de hardware: temperatura, voltajes, velocidades de ventiladores y estado general del equipo.',
+    size: '8 MB',
+    tag: 'Diagnóstico',
+    tagColor: 'bg-blue-900/50 text-blue-300',
+    href: 'https://www.hwinfo.com/download/',
+  },
+  {
+    icon: <Monitor className="w-6 h-6" />,
+    title: 'CrystalDiskInfo',
+    desc: 'Revisá la salud de tu disco rígido o SSD. Detecta fallas antes de que pierdas tus datos.',
+    size: '4 MB',
+    tag: 'Diagnóstico',
+    tagColor: 'bg-blue-900/50 text-blue-300',
+    href: 'https://crystalmark.info/en/software/crystaldiskinfo/',
+  },
+  {
+    icon: <Cpu className="w-6 h-6" />,
+    title: 'CPU-Z',
+    desc: 'Información detallada del procesador, placa base, memoria RAM y tarjeta gráfica de tu PC.',
+    size: '2 MB',
+    tag: 'Información',
+    tagColor: 'bg-purple-900/50 text-purple-300',
+    href: 'https://www.cpuid.com/softwares/cpu-z.html',
+  },
+  {
+    icon: <Wrench className="w-6 h-6" />,
+    title: 'Malwarebytes',
+    desc: 'Eliminá virus, malware y programas no deseados. Versión gratuita ideal para una limpieza rápida.',
+    size: '70 MB',
+    tag: 'Seguridad',
+    tagColor: 'bg-red-900/50 text-red-300',
+    href: 'https://www.malwarebytes.com/mwb-download',
+  },
+  {
+    icon: <FileDown className="w-6 h-6" />,
+    title: 'Ventoy',
+    desc: 'Creá un pendrive booteable con múltiples sistemas operativos. Ideal para reinstalar Windows o diagnosticar.',
+    size: '14 MB',
+    tag: 'Utilidades',
+    tagColor: 'bg-emerald-900/50 text-emerald-300',
+    href: 'https://www.ventoy.net/en/download.html',
+  },
+  {
+    icon: <Globe className="w-6 h-6" />,
+    title: 'Driver Booster (IObit)',
+    desc: 'Actualizá todos los drivers de tu PC automáticamente. Útil después de reinstalar Windows.',
+    size: '25 MB',
+    tag: 'Drivers',
+    tagColor: 'bg-yellow-900/50 text-yellow-300',
+    href: 'https://www.iobit.com/en/driver-booster.php',
+  },
 ]
 
 const SERVICES = [
@@ -293,6 +386,88 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── PROYECTOS ── */}
+      <section id="proyectos" className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-14">
+            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Lo que construimos</p>
+            <h2 className="text-4xl font-bold mb-4">Proyectos</h2>
+            <p className="text-gray-400 text-lg max-w-xl">Además de reparar equipos, desarrollamos herramientas digitales para mejorar la experiencia del servicio técnico.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {PROJECTS.map((p) => (
+              <div key={p.title} className={`relative bg-gradient-to-b ${p.color} border border-gray-800 ${p.border} rounded-2xl p-6 transition-all duration-300 flex flex-col`}>
+                <div className={`p-3 ${p.iconColor} rounded-xl w-fit mb-5`}>
+                  {p.icon}
+                </div>
+                <h3 className="font-bold text-lg mb-2">{p.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-5 flex-1">{p.desc}</p>
+                <div className="flex flex-wrap gap-2 mb-5">
+                  {p.tags.map(t => (
+                    <span key={t} className="text-xs bg-gray-800 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-full">{t}</span>
+                  ))}
+                </div>
+                {p.link && (
+                  <a href={p.link} className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium">
+                    <ExternalLink className="w-4 h-4" /> Ver proyecto
+                  </a>
+                )}
+                {!p.link && (
+                  <span className="flex items-center gap-2 text-sm text-gray-600">
+                    <FolderOpen className="w-4 h-4" /> Uso interno
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── DESCARGAS ── */}
+      <section id="descargas" className="py-24 px-4 bg-gray-900/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-14">
+            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Recursos gratuitos</p>
+            <h2 className="text-4xl font-bold mb-4">Descargas</h2>
+            <p className="text-gray-400 text-lg max-w-xl">Herramientas que usamos y recomendamos para diagnosticar, optimizar y mantener tu equipo en buen estado.</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {DOWNLOADS.map((d) => (
+              <a
+                key={d.title}
+                href={d.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-gray-900/60 border border-gray-800 hover:border-gray-600 rounded-2xl p-5 transition-all duration-200 flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="p-2.5 bg-blue-600/15 rounded-xl text-blue-400 flex-shrink-0">
+                    {d.icon}
+                  </div>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${d.tagColor}`}>{d.tag}</span>
+                </div>
+                <div>
+                  <h3 className="font-bold mb-1 group-hover:text-blue-400 transition-colors">{d.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{d.desc}</p>
+                </div>
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-800">
+                  <span className="text-xs text-gray-600">{d.size}</span>
+                  <span className="flex items-center gap-1.5 text-xs text-blue-400 group-hover:text-blue-300 transition-colors font-medium">
+                    <Download className="w-3.5 h-3.5" /> Descargar gratis
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <p className="text-center text-gray-600 text-xs mt-8">
+            Todos los programas son gratuitos y de terceros. ElectroGamez no se responsabiliza por su uso.
+          </p>
         </div>
       </section>
 
