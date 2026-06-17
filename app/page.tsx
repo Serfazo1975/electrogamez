@@ -20,43 +20,87 @@ const NAV_LINKS = [
 ]
 
 const PROJECTS = [
+  // ── Trabajos destacados ──
   {
-    icon: <Monitor className="w-7 h-7" />,
-    title: 'ElectroGamez System',
-    desc: 'Sistema de gestión interna para talleres de reparación. Registro de reparaciones, clientes, inventario, facturación AFIP y comprobantes con código de seguimiento.',
-    tags: ['Next.js', 'PostgreSQL', 'Tailwind'],
+    tipo: 'Reparación',
+    tipoColor: 'bg-orange-900/50 text-orange-300',
+    icon: <Gamepad2 className="w-7 h-7" />,
+    title: 'PS5 — Reemplazo chip HDMI',
+    desc: 'Reemplazo de chip HDMI en PlayStation 5 con soldadura BGA. Sin imagen por HDMI, cliente recuperó la consola en 48 hs con garantía escrita.',
+    tags: ['Soldadura BGA', 'PS5', 'HDMI'],
     color: 'from-blue-600/20 to-blue-600/5',
     border: 'hover:border-blue-500/50',
     iconColor: 'text-blue-400 bg-blue-600/20',
     link: null,
   },
   {
-    icon: <Search className="w-7 h-7" />,
-    title: 'Seguimiento público de reparaciones',
-    desc: 'Página pública donde los clientes pueden consultar el estado de su reparación en tiempo real ingresando su código único.',
-    tags: ['Next.js', 'API REST', 'Mobile-first'],
-    color: 'from-cyan-600/20 to-cyan-600/5',
-    border: 'hover:border-cyan-500/50',
-    iconColor: 'text-cyan-400 bg-cyan-600/20',
-    link: '/seguimiento',
-  },
-  {
-    icon: <Gamepad2 className="w-7 h-7" />,
-    title: 'Landing ElectroGamez',
-    desc: 'Sitio web institucional con servicios, testimonios, formulario de contacto vía WhatsApp y sistema de reseñas Google. Diseño responsivo optimizado para móvil.',
-    tags: ['Next.js', 'Netlify', 'SEO'],
+    tipo: 'Reparación',
+    tipoColor: 'bg-orange-900/50 text-orange-300',
+    icon: <Laptop className="w-7 h-7" />,
+    title: 'Notebook HP — Cambio de pantalla',
+    desc: 'Reemplazo de display 15.6" FHD en HP Pavilion. Pantalla rota por golpe, proceso completo en el día incluyendo calibración.',
+    tags: ['Pantalla', 'HP', 'Laptop'],
     color: 'from-violet-600/20 to-violet-600/5',
     border: 'hover:border-violet-500/50',
     iconColor: 'text-violet-400 bg-violet-600/20',
+    link: null,
+  },
+  {
+    tipo: 'Armado',
+    tipoColor: 'bg-emerald-900/50 text-emerald-300',
+    icon: <Monitor className="w-7 h-7" />,
+    title: 'PC Gamer — Armado desde cero',
+    desc: 'Armado y configuración de PC gamer completa: Ryzen 5 7600, RTX 4060, 32 GB DDR5. Gestión de componentes, cableado y instalación de Windows + drivers.',
+    tags: ['Ryzen 5', 'RTX 4060', 'DDR5'],
+    color: 'from-emerald-600/20 to-emerald-600/5',
+    border: 'hover:border-emerald-500/50',
+    iconColor: 'text-emerald-400 bg-emerald-600/20',
+    link: null,
+  },
+  // ── Proyectos de software ──
+  {
+    tipo: 'Software',
+    tipoColor: 'bg-cyan-900/50 text-cyan-300',
+    icon: <Code2 className="w-7 h-7" />,
+    title: 'ElectroGamez System',
+    desc: 'Sistema de gestión propio para el taller: reparaciones, clientes, inventario, facturación AFIP y comprobantes PDF con código de seguimiento.',
+    tags: ['Next.js', 'PostgreSQL', 'Tailwind'],
+    color: 'from-cyan-600/20 to-cyan-600/5',
+    border: 'hover:border-cyan-500/50',
+    iconColor: 'text-cyan-400 bg-cyan-600/20',
+    link: null,
+  },
+  {
+    tipo: 'Software',
+    tipoColor: 'bg-cyan-900/50 text-cyan-300',
+    icon: <Search className="w-7 h-7" />,
+    title: 'Seguimiento público',
+    desc: 'Página donde los clientes consultan el estado de su reparación ingresando su código único. Actualizado en tiempo real desde el dashboard.',
+    tags: ['Next.js', 'API REST', 'Mobile-first'],
+    color: 'from-blue-600/20 to-blue-600/5',
+    border: 'hover:border-blue-500/50',
+    iconColor: 'text-blue-400 bg-blue-600/20',
+    link: '/seguimiento',
+  },
+  {
+    tipo: 'Software',
+    tipoColor: 'bg-cyan-900/50 text-cyan-300',
+    icon: <Globe className="w-7 h-7" />,
+    title: 'Landing ElectroGamez',
+    desc: 'Sitio web institucional con servicios, formulario de contacto WhatsApp, seguimiento integrado y reseñas Google. SEO y mobile-first.',
+    tags: ['Next.js', 'Netlify', 'SEO'],
+    color: 'from-indigo-600/20 to-indigo-600/5',
+    border: 'hover:border-indigo-500/50',
+    iconColor: 'text-indigo-400 bg-indigo-600/20',
     link: '/',
   },
 ]
 
-const DOWNLOADS = [
+const SOFTWARE_DOWNLOADS = [
   {
     icon: <Laptop className="w-6 h-6" />,
     title: 'HWiNFO64',
-    desc: 'Diagnóstico completo de hardware: temperatura, voltajes, velocidades de ventiladores y estado general del equipo.',
+    desc: 'Diagnóstico completo de hardware: temperatura, voltajes, velocidad de ventiladores y estado general del equipo.',
     size: '8 MB',
     tag: 'Diagnóstico',
     tagColor: 'bg-blue-900/50 text-blue-300',
@@ -92,7 +136,7 @@ const DOWNLOADS = [
   {
     icon: <FileDown className="w-6 h-6" />,
     title: 'Ventoy',
-    desc: 'Creá un pendrive booteable con múltiples sistemas operativos. Ideal para reinstalar Windows o diagnosticar.',
+    desc: 'Creá un pendrive booteable con múltiples ISO. Ideal para reinstalar Windows o diagnosticar sin internet.',
     size: '14 MB',
     tag: 'Utilidades',
     tagColor: 'bg-emerald-900/50 text-emerald-300',
@@ -101,11 +145,30 @@ const DOWNLOADS = [
   {
     icon: <Globe className="w-6 h-6" />,
     title: 'Driver Booster (IObit)',
-    desc: 'Actualizá todos los drivers de tu PC automáticamente. Útil después de reinstalar Windows.',
+    desc: 'Actualizá todos los drivers de tu PC automáticamente. Muy útil después de reinstalar Windows.',
     size: '25 MB',
     tag: 'Drivers',
     tagColor: 'bg-yellow-900/50 text-yellow-300',
     href: 'https://www.iobit.com/en/driver-booster.php',
+  },
+]
+
+const OWN_DOWNLOADS = [
+  {
+    icon: <FileDown className="w-6 h-6" />,
+    title: 'Formulario de ingreso de equipo',
+    desc: 'Completá este formulario antes de traer tu equipo al local. Agiliza el proceso de recepción y garantía.',
+    tag: 'Documento',
+    tagColor: 'bg-gray-700 text-gray-300',
+    href: null,
+  },
+  {
+    icon: <FileDown className="w-6 h-6" />,
+    title: 'Términos de servicio y garantía',
+    desc: 'Condiciones de servicio, garantías de reparación y responsabilidades. Leelo antes de dejar tu equipo.',
+    tag: 'Documento',
+    tagColor: 'bg-gray-700 text-gray-300',
+    href: null,
   },
 ]
 
@@ -393,30 +456,30 @@ export default function Home() {
       <section id="proyectos" className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="mb-14">
-            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Lo que construimos</p>
+            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Lo que hacemos y construimos</p>
             <h2 className="text-4xl font-bold mb-4">Proyectos</h2>
-            <p className="text-gray-400 text-lg max-w-xl">Además de reparar equipos, desarrollamos herramientas digitales para mejorar la experiencia del servicio técnico.</p>
+            <p className="text-gray-400 text-lg max-w-xl">Trabajos destacados de reparación y armado, más los proyectos digitales que desarrollamos para el negocio.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {PROJECTS.map((p) => (
               <div key={p.title} className={`relative bg-gradient-to-b ${p.color} border border-gray-800 ${p.border} rounded-2xl p-6 transition-all duration-300 flex flex-col`}>
-                <div className={`p-3 ${p.iconColor} rounded-xl w-fit mb-5`}>
-                  {p.icon}
+                <div className="flex items-start justify-between mb-5">
+                  <div className={`p-3 ${p.iconColor} rounded-xl`}>{p.icon}</div>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${p.tipoColor}`}>{p.tipo}</span>
                 </div>
                 <h3 className="font-bold text-lg mb-2">{p.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed mb-5 flex-1">{p.desc}</p>
-                <div className="flex flex-wrap gap-2 mb-5">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {p.tags.map(t => (
                     <span key={t} className="text-xs bg-gray-800 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-full">{t}</span>
                   ))}
                 </div>
-                {p.link && (
+                {p.link ? (
                   <a href={p.link} className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium">
                     <ExternalLink className="w-4 h-4" /> Ver proyecto
                   </a>
-                )}
-                {!p.link && (
+                ) : (
                   <span className="flex items-center gap-2 text-sm text-gray-600">
                     <FolderOpen className="w-4 h-4" /> Uso interno
                   </span>
@@ -431,43 +494,75 @@ export default function Home() {
       <section id="descargas" className="py-24 px-4 bg-gray-900/40">
         <div className="max-w-6xl mx-auto">
           <div className="mb-14">
-            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Recursos gratuitos</p>
+            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Recursos</p>
             <h2 className="text-4xl font-bold mb-4">Descargas</h2>
-            <p className="text-gray-400 text-lg max-w-xl">Herramientas que usamos y recomendamos para diagnosticar, optimizar y mantener tu equipo en buen estado.</p>
+            <p className="text-gray-400 text-lg max-w-xl">Software recomendado para mantener y diagnosticar tu equipo, más nuestros documentos y formularios.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {DOWNLOADS.map((d) => (
-              <a
-                key={d.title}
-                href={d.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group bg-gray-900/60 border border-gray-800 hover:border-gray-600 rounded-2xl p-5 transition-all duration-200 flex flex-col gap-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="p-2.5 bg-blue-600/15 rounded-xl text-blue-400 flex-shrink-0">
-                    {d.icon}
+          {/* Software de terceros */}
+          <div className="mb-10">
+            <h3 className="text-lg font-semibold text-gray-200 mb-5 flex items-center gap-2">
+              <Download className="w-5 h-5 text-blue-400" /> Software gratuito recomendado
+            </h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {SOFTWARE_DOWNLOADS.map((d) => (
+                <a
+                  key={d.title}
+                  href={d.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-gray-900/60 border border-gray-800 hover:border-gray-600 rounded-2xl p-5 transition-all duration-200 flex flex-col gap-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="p-2.5 bg-blue-600/15 rounded-xl text-blue-400 flex-shrink-0">{d.icon}</div>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${d.tagColor}`}>{d.tag}</span>
                   </div>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${d.tagColor}`}>{d.tag}</span>
-                </div>
-                <div>
-                  <h3 className="font-bold mb-1 group-hover:text-blue-400 transition-colors">{d.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{d.desc}</p>
-                </div>
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-800">
-                  <span className="text-xs text-gray-600">{d.size}</span>
-                  <span className="flex items-center gap-1.5 text-xs text-blue-400 group-hover:text-blue-300 transition-colors font-medium">
-                    <Download className="w-3.5 h-3.5" /> Descargar gratis
-                  </span>
-                </div>
-              </a>
-            ))}
+                  <div>
+                    <h4 className="font-bold mb-1 group-hover:text-blue-400 transition-colors">{d.title}</h4>
+                    <p className="text-gray-500 text-sm leading-relaxed">{d.desc}</p>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-800">
+                    <span className="text-xs text-gray-600">{d.size}</span>
+                    <span className="flex items-center gap-1.5 text-xs text-blue-400 group-hover:text-blue-300 transition-colors font-medium">
+                      <Download className="w-3.5 h-3.5" /> Descargar gratis
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+            <p className="text-gray-700 text-xs mt-4">
+              Programas gratuitos de terceros. ElectroGamez no se responsabiliza por su uso.
+            </p>
           </div>
 
-          <p className="text-center text-gray-600 text-xs mt-8">
-            Todos los programas son gratuitos y de terceros. ElectroGamez no se responsabiliza por su uso.
-          </p>
+          {/* Documentos propios */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-200 mb-5 flex items-center gap-2">
+              <FileDown className="w-5 h-5 text-cyan-400" /> Nuestros documentos
+            </h3>
+            <div className="grid md:grid-cols-2 gap-5">
+              {OWN_DOWNLOADS.map((d) => (
+                <div key={d.title} className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 flex items-center gap-4">
+                  <div className="p-2.5 bg-cyan-600/15 rounded-xl text-cyan-400 flex-shrink-0">{d.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-bold text-sm">{d.title}</h4>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${d.tagColor}`}>{d.tag}</span>
+                    </div>
+                    <p className="text-gray-500 text-xs leading-relaxed">{d.desc}</p>
+                  </div>
+                  {d.href ? (
+                    <a href={d.href} target="_blank" rel="noopener noreferrer"
+                      className="flex-shrink-0 flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+                      <Download className="w-3.5 h-3.5" /> Descargar
+                    </a>
+                  ) : (
+                    <span className="flex-shrink-0 text-xs text-gray-600 italic">Próximamente</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
