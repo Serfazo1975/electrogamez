@@ -8,7 +8,8 @@ import {
   MessageCircle, Download, ExternalLink, Instagram,
   Facebook, Plus, Trash2, Edit3, Save, Globe,
   ChevronRight, Package, Sparkles, ArrowUpRight,
-  Settings, LogOut
+  Settings, LogOut,
+  Server, Wifi, BatteryCharging, Printer, Building2
 } from 'lucide-react'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
 
 const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
+  { label: 'Empresas', href: '#empresas' },
   { label: 'Novedades', href: '#novedades' },
   { label: 'Proyectos', href: '#proyectos' },
   { label: 'Testimonios', href: '#testimonios' },
@@ -512,6 +514,58 @@ export default function Home() {
                 <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── EMPRESAS ── */}
+      <section id="empresas" className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-14">
+            <p className="text-cyan-400 text-sm font-medium uppercase tracking-widest mb-3 flex items-center gap-2">
+              <Building2 className="w-4 h-4" /> Soluciones corporativas
+            </p>
+            <h2 className="text-4xl font-bold mb-4">Soporte técnico para tu Empresa</h2>
+            <p className="text-gray-400 text-lg max-w-2xl">
+              Contamos con equipo de trabajo en toda la Provincia de Santa Cruz. Instalación,
+              mantenimiento y reparación de servidores, redes, UPS e impresoras. Además desarrollamos
+              páginas web a la medida de tu presupuesto.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
+            {[
+              { icon: <Server className="w-7 h-7" />,          title: 'Servidores', desc: 'Instalación, configuración y mantenimiento para asegurar la continuidad de tu negocio.' },
+              { icon: <Wifi className="w-7 h-7" />,            title: 'Redes',      desc: 'Armado y optimización de redes cableadas y WiFi para una conexión estable en la oficina.' },
+              { icon: <BatteryCharging className="w-7 h-7" />, title: 'UPS',        desc: 'Instalación y service de fuentes de alimentación ininterrumpida para proteger tus equipos.' },
+              { icon: <Printer className="w-7 h-7" />,         title: 'Impresoras', desc: 'Reparación, mantenimiento y recarga de impresoras de oficina de cualquier tamaño.' },
+              { icon: <Globe className="w-7 h-7" />,           title: 'Páginas Web', desc: 'Desarrollo de sitios web a medida, adaptados al presupuesto de tu empresa.' },
+            ].map((s) => (
+              <div key={s.title} className="bg-gray-900/60 border border-gray-800 hover:border-cyan-600/40 rounded-2xl p-5 transition-all duration-300">
+                <div className="p-3 bg-cyan-600/15 text-cyan-400 rounded-xl w-fit mb-4">{s.icon}</div>
+                <h3 className="font-bold mb-2">{s.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-4 mt-10">
+            <a
+              href={`https://wa.me/5491156975880?text=${encodeURIComponent('Hola ElectroGamez! Quiero consultar por soporte técnico para mi empresa.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-7 py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/20"
+            >
+              <MessageCircle className="w-5 h-5" /> Consultar para mi empresa
+            </a>
+            <a
+              href={`https://wa.me/5491156975880?text=${encodeURIComponent('Hola ElectroGamez! Me interesa desarrollar una página web para mi negocio.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 px-7 py-3.5 rounded-xl font-medium transition-all text-gray-200"
+            >
+              <Globe className="w-4 h-4" /> Quiero mi web
+            </a>
           </div>
         </div>
       </section>
