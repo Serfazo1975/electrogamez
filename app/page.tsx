@@ -175,9 +175,6 @@ export default function Home() {
   const ADMIN_PASS = 'electrogamez2025'
 
   useEffect(() => {
-    // Restaurar sesión de admin guardada en este equipo
-    if (localStorage.getItem('eg_admin') === '1') setAdminMode(true)
-
     const stored = localStorage.getItem('eg_apps_novedades')
     if (stored) {
       try { setApps(JSON.parse(stored)) } catch { setApps([]) }
@@ -605,14 +602,7 @@ export default function Home() {
                     <X className="w-4 h-4" /> Salir
                   </button>
                 </>
-              ) : (
-                <button
-                  onClick={() => setShowAdminLogin(true)}
-                  className="text-gray-700 hover:text-gray-500 text-xs transition-colors"
-                >
-                  ·
-                </button>
-              )}
+              ) : null}
             </div>
           </div>
 
@@ -1168,32 +1158,13 @@ export default function Home() {
               © {new Date().getFullYear()} ElectroGamez · Los Pozos 458, Rio Gallegos
             </p>
 
-            {adminMode ? (
-              <div className="flex items-center gap-2">
-                <a
-                  href="#novedades"
-                  title="Panel de administración activo — editar Descargas y Novedades"
-                  className="text-cyan-500 hover:text-cyan-400 transition-colors"
-                >
-                  <Settings className="w-5 h-5" />
-                </a>
-                <button
-                  onClick={handleAdminLogout}
-                  title="Cerrar sesión de administrador"
-                  className="text-gray-600 hover:text-red-400 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAdminLogin(true)}
-                title="Acceso administrador"
-                className="text-gray-700 hover:text-gray-400 transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-            )}
+            <a
+              href="/login"
+              title="Acceso administrador — Panel de gestión"
+              className="text-gray-700 hover:text-gray-400 transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </a>
           </div>
         </div>
       </footer>

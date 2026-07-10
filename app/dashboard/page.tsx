@@ -6,7 +6,8 @@ import {
   Plus, Search, Filter, MoreVertical, TrendingUp,
   Clock, CheckCircle2, AlertCircle, Gamepad2, Monitor,
   Laptop, ChevronRight, Bell, Settings, Menu, X,
-  FileText, Receipt, ClipboardList
+  FileText, Receipt, ClipboardList,
+  Download, Trash2, Edit3, ExternalLink, Star
 } from 'lucide-react'
 import Documento, { DocData } from './Documento'
 import Comprobante, { ReceiptData } from './Comprobante'
@@ -119,7 +120,22 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors text-sm"
 const selectCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors text-sm"
 
-type Tab = 'resumen' | 'reparaciones' | 'clientes' | 'inventario'
+type Tab = 'resumen' | 'reparaciones' | 'clientes' | 'inventario' | 'descargas'
+
+// Apps/Descargas (se guardan en localStorage, compartidas con la landing pública)
+interface AppCard {
+  id: string
+  titulo: string
+  descripcion: string
+  imagen: string
+  linkDescarga: string
+  sitioFuente: string
+  categoria: string
+  fechaAgregado: string
+  destacado: boolean
+}
+const APP_CATEGORIAS = ['Utilidades', 'Seguridad', 'Multimedia', 'Juegos', 'Drivers', 'Oficina', 'Sistema']
+const APPS_LS_KEY = 'eg_apps_novedades'
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -149,6 +165,44 @@ export default function DashboardPage() {
       .catch(() => { /* sin base: se mantienen los datos de ejemplo (modo local) */ })
     return () => { active = false }
   }, [])
+
+  // Apps / Descargas (localStorage compartido con la landing)
+  const [apps, setApps] = useState<AppCard[]>([])
+  const [showAppForm, setShowAppForm] = useState(false)
+  const [editingApp, setEditingApp] = useState<AppCard | null>(null)
+  const emptyApp = { titulo: '', descripcion: '', imagen: '', linkDescarga: '', sitioFuente: '', categoria: 'Utilidades', destacado: false }
+  const [appForm, setAppForm] = useState<Omit<AppCard, 'id' | 'fechaAgregado'>>(emptyApp)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(APPS_LS_KEY)
+    if (stored) { try { setApps(JSON.parse(stored)) } catch { setApps([]) } }
+  }, [])
+
+  function saveApps(next: AppCard[]) {
+    setApps(next)
+    localStorage.setItem(APPS_LS_KEY, JSON.stringify(next))
+  }
+
+  function submitApp(e: React.FormEvent) {
+    e.preventDefault()
+    if (!appForm.titulo || !appForm.linkDescarga) return
+    if (editingApp) {
+      saveApps(apps.map(a => a.id === editingApp.id ? { ...editingApp, ...appForm } : a))
+    } else {
+      saveApps([{ ...appForm, id: String(Date.now()), fechaAgregado: new Date().toISOString() }, ...apps])
+    }
+    setShowAppForm(false); setEditingApp(null); setAppForm(emptyApp)
+  }
+
+  function editApp(a: AppCard) {
+    setEditingApp(a)
+    setAppForm({ titulo: a.titulo, descripcion: a.descripcion, imagen: a.imagen, linkDescarga: a.linkDescarga, sitioFuente: a.sitioFuente, categoria: a.categoria, destacado: a.destacado })
+    setShowAppForm(true)
+  }
+
+  function deleteApp(id: string) {
+    if (confirm('¿Eliminar esta descarga?')) saveApps(apps.filter(a => a.id !== id))
+  }
 
   // Modales
   const [showNewRepair,  setShowNewRepair]  = useState(false)
@@ -203,6 +257,7 @@ export default function DashboardPage() {
     { id: 'reparaciones', label: 'Reparaciones', icon: <Wrench className="w-5 h-5" /> },
     { id: 'clientes',     label: 'Clientes',     icon: <Users className="w-5 h-5" /> },
     { id: 'inventario',   label: 'Inventario',   icon: <Package className="w-5 h-5" /> },
+    { id: 'descargas',    label: 'Descargas',    icon: <Download className="w-5 h-5" /> },
   ]
 
   const filteredRepairs = repairs.filter(r =>
@@ -409,11 +464,12 @@ export default function DashboardPage() {
               </div>
 
               {/* Acciones rápidas */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { label: 'Nueva reparación', icon: <Wrench className="w-5 h-5" />, action: () => setShowNewRepair(true) },
                   { label: 'Nuevo cliente',    icon: <Users className="w-5 h-5" />,  action: () => setShowNewClient(true) },
                   { label: 'Agregar repuesto', icon: <Package className="w-5 h-5" />, action: () => setShowNewPart(true) },
+                  { label: 'Agregar app',      icon: <Download className="w-5 h-5" />, action: () => { setTab('descargas'); setEditingApp(null); setAppForm(emptyApp); setShowAppForm(true) } },
                 ].map(a => (
                   <button key={a.label} onClick={a.action}
                     className="bg-gray-800/60 border border-gray-700 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col items-center gap-3 transition-colors group">
@@ -653,6 +709,96 @@ export default function DashboardPage() {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ── DESCARGAS ── */}
+          {tab === 'descargas' && (
+            <div className="space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-gray-400 text-sm max-w-xl">
+                  Gestioná las apps y el software que aparecen en la sección <span className="text-gray-300">"Descargas y Novedades"</span> de la web pública.
+                </p>
+                <button onClick={() => { setEditingApp(null); setAppForm(emptyApp); setShowAppForm(true) }}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-sm font-medium transition-colors shrink-0">
+                  <Plus className="w-4 h-4" /> Agregar descarga
+                </button>
+              </div>
+
+              {apps.length === 0 ? (
+                <div className="text-center py-16 text-gray-500 bg-gray-800/40 border border-gray-700 rounded-2xl">
+                  <Download className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                  <p>Todavía no hay descargas cargadas.</p>
+                  <button onClick={() => { setEditingApp(null); setAppForm(emptyApp); setShowAppForm(true) }} className="mt-3 text-blue-400 hover:text-blue-300 text-sm">
+                    Agregar la primera
+                  </button>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {apps.map(a => (
+                    <div key={a.id} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 flex flex-col gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+                          {a.imagen ? <img src={a.imagen} alt="" className="w-full h-full object-contain" /> : <Download className="w-5 h-5 text-gray-400" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="font-semibold text-sm truncate">{a.titulo}</h3>
+                            {a.destacado && <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 shrink-0" />}
+                          </div>
+                          <span className="text-xs text-gray-500">{a.categoria}</span>
+                        </div>
+                      </div>
+                      <p className="text-gray-400 text-xs leading-relaxed line-clamp-3">{a.descripcion}</p>
+                      <div className="flex items-center gap-2 mt-auto pt-2 border-t border-gray-700">
+                        <a href={a.linkDescarga} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                          <ExternalLink className="w-3.5 h-3.5" /> Link
+                        </a>
+                        <div className="ml-auto flex items-center gap-1">
+                          <button onClick={() => editApp(a)} className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors" title="Editar"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => deleteApp(a.id)} className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showAppForm && (
+                <Modal title={editingApp ? 'Editar descarga' : 'Agregar descarga'} onClose={() => { setShowAppForm(false); setEditingApp(null); setAppForm(emptyApp) }}>
+                  <form onSubmit={submitApp} className="space-y-4">
+                    <Field label="Nombre *">
+                      <input value={appForm.titulo} onChange={e => setAppForm({ ...appForm, titulo: e.target.value })} className={inputCls} placeholder="Ej: CCleaner" />
+                    </Field>
+                    <Field label="Descripción">
+                      <textarea value={appForm.descripcion} onChange={e => setAppForm({ ...appForm, descripcion: e.target.value })} className={inputCls} rows={3} placeholder="Para qué sirve" />
+                    </Field>
+                    <Field label="Link de descarga *">
+                      <input value={appForm.linkDescarga} onChange={e => setAppForm({ ...appForm, linkDescarga: e.target.value })} className={inputCls} placeholder="https://..." />
+                    </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Sitio oficial">
+                        <input value={appForm.sitioFuente} onChange={e => setAppForm({ ...appForm, sitioFuente: e.target.value })} className={inputCls} placeholder="ejemplo.com" />
+                      </Field>
+                      <Field label="Categoría">
+                        <select value={appForm.categoria} onChange={e => setAppForm({ ...appForm, categoria: e.target.value })} className={selectCls}>
+                          {APP_CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </Field>
+                    </div>
+                    <Field label="URL del ícono/imagen (opcional)">
+                      <input value={appForm.imagen} onChange={e => setAppForm({ ...appForm, imagen: e.target.value })} className={inputCls} placeholder="https://.../icono.png" />
+                    </Field>
+                    <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                      <input type="checkbox" checked={appForm.destacado} onChange={e => setAppForm({ ...appForm, destacado: e.target.checked })} className="w-4 h-4 accent-blue-600" />
+                      Destacar en la web
+                    </label>
+                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                      {editingApp ? 'Guardar cambios' : 'Agregar descarga'}
+                    </button>
+                  </form>
+                </Modal>
+              )}
             </div>
           )}
         </main>
