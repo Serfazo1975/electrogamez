@@ -58,15 +58,6 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
     tecnologia: 'HTML · pdf-lib · PWA'
   },
   {
-    id: 'duranmotos',
-    nombre: 'DuranMotos POS',
-    descripcion: 'Sistema de punto de venta para concesionaria y taller de motos. Gestión de stock, ventas, órdenes de trabajo y reportes.',
-    url: 'https://duran-motos-pos.netlify.app/',
-    imagen: '',
-    estado: 'activo',
-    tecnologia: 'Web · POS'
-  },
-  {
     id: 'barberia',
     nombre: 'Directorio Barber',
     descripcion: 'Directorio de barberías para buscar y solicitar turnos online. Los barberos se registran gratis para aparecer en su ciudad.',
