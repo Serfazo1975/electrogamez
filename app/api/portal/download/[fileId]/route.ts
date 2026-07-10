@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getPortalSession } from '@/lib/portal-auth'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest, { params }: { params: { fileId: string } }) {
   const token = req.cookies.get('eg_portal_session')?.value
   const session = await getPortalSession(token)

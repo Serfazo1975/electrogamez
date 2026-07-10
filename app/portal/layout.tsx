@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Zap, Search, LogIn, LogOut, User, ChevronRight, Home, Upload, Menu, X } from 'lucide-react'
+import { Zap, Search, LogIn, LogOut, User, ChevronRight, Home, Upload, Menu, X, ArrowLeft } from 'lucide-react'
 
 interface Category {
   id: string
@@ -114,6 +114,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
           </div>
 
           <div className="flex items-center gap-3">
+            <a
+              href="/"
+              className="flex items-center gap-1.5 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-sm transition-all"
+              title="Volver al sitio principal"
+            >
+              <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Volver al sitio</span>
+            </a>
             {user ? (
               <>
                 <div className="flex items-center gap-2 text-sm text-gray-400">
