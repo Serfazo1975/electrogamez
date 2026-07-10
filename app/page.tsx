@@ -7,7 +7,8 @@ import {
   Menu, X, Search, Cpu,
   MessageCircle, Download, ExternalLink, Instagram,
   Facebook, Plus, Trash2, Edit3, Save, Globe,
-  ChevronRight, Package, Sparkles, ArrowUpRight
+  ChevronRight, Package, Sparkles, ArrowUpRight,
+  Settings, LogOut
 } from 'lucide-react'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
@@ -172,6 +173,9 @@ export default function Home() {
   const ADMIN_PASS = 'electrogamez2025'
 
   useEffect(() => {
+    // Restaurar sesión de admin guardada en este equipo
+    if (localStorage.getItem('eg_admin') === '1') setAdminMode(true)
+
     const stored = localStorage.getItem('eg_apps_novedades')
     if (stored) {
       try { setApps(JSON.parse(stored)) } catch { setApps([]) }
@@ -225,11 +229,17 @@ export default function Home() {
   function handleAdminLogin() {
     if (adminPassword === ADMIN_PASS) {
       setAdminMode(true)
+      localStorage.setItem('eg_admin', '1')  // recordar sesión en este equipo
       setShowAdminLogin(false)
       setAdminPassword('')
     } else {
       alert('Contraseña incorrecta')
     }
+  }
+
+  function handleAdminLogout() {
+    setAdminMode(false)
+    localStorage.removeItem('eg_admin')
   }
 
   function handleAddApp() {
@@ -535,7 +545,7 @@ export default function Home() {
                     <Plus className="w-4 h-4" /> Agregar app
                   </button>
                   <button
-                    onClick={() => setAdminMode(false)}
+                    onClick={handleAdminLogout}
                     className="flex items-center gap-2 border border-gray-700 hover:border-gray-600 text-gray-400 hover:text-white px-3 py-2 rounded-xl text-sm transition-colors"
                   >
                     <X className="w-4 h-4" /> Salir
@@ -1104,7 +1114,32 @@ export default function Home() {
               © {new Date().getFullYear()} ElectroGamez · Los Pozos 458, Rio Gallegos
             </p>
 
-            <a href="/login" className="text-gray-800 hover:text-gray-600 text-xs transition-colors">·</a>
+            {adminMode ? (
+              <div className="flex items-center gap-2">
+                <a
+                  href="#novedades"
+                  title="Panel de administración activo — editar Descargas y Novedades"
+                  className="text-cyan-500 hover:text-cyan-400 transition-colors"
+                >
+                  <Settings className="w-5 h-5" />
+                </a>
+                <button
+                  onClick={handleAdminLogout}
+                  title="Cerrar sesión de administrador"
+                  className="text-gray-600 hover:text-red-400 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAdminLogin(true)}
+                title="Acceso administrador"
+                className="text-gray-700 hover:text-gray-400 transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </footer>
