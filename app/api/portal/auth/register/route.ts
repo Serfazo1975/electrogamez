@@ -15,9 +15,18 @@ export async function POST(req: NextRequest) {
   if (exists) {
     return NextResponse.json({ error: 'Usuario o email ya registrado' }, { status: 409 })
   }
+
+  // Definir si este usuario debe ser administrador:
+  //  - si su email coincide con PORTAL_ADMIN_EMAIL (configurable en Netlify), o
+  //  - si todavía no existe ningún admin (el primer registrado toma el rol).
+  const adminEmail = process.env.PORTAL_ADMIN_EMAIL?.trim().toLowerCase()
+  const adminCount = await prisma.portalUser.count({ where: { role: 'admin' } })
+  const isAdmin = (!!adminEmail && email.trim().toLowerCase() === adminEmail) || adminCount === 0
+  const role = isAdmin ? 'admin' : 'member'
+
   const hashed = await bcrypt.hash(password, 10)
   const user = await prisma.portalUser.create({
-    data: { username, email, password: hashed },
+    data: { username, email, password: hashed, role },
   })
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   const session = await prisma.portalSession.create({
