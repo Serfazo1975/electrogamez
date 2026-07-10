@@ -60,11 +60,11 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
   {
     id: 'duranmotos',
     nombre: 'DuranMotos POS',
-    descripcion: 'Sistema de punto de venta para repuestos y taller de motos. Gestión de stock, ventas y órdenes de trabajo.',
-    url: '#',
+    descripcion: 'Sistema de punto de venta para concesionaria y taller de motos. Gestión de stock, ventas, órdenes de trabajo y reportes.',
+    url: 'https://duran-motos-pos.netlify.app/',
     imagen: '',
-    estado: 'beta',
-    tecnologia: 'HTML · localStorage'
+    estado: 'activo',
+    tecnologia: 'Web · POS'
   },
   {
     id: 'barberia',
