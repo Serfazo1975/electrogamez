@@ -43,7 +43,7 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
     id: 'tecnigest',
     nombre: 'TecniGest',
     descripcion: 'Sistema de gestión para talleres técnicos. Control de reparaciones, clientes, inventario y seguimiento online.',
-    url: 'https://electrogamez.netlify.app',
+    url: 'https://tecnigest.netlify.app/#/',
     imagen: '',
     estado: 'activo',
     tecnologia: 'Next.js · PostgreSQL'
@@ -65,6 +65,24 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
     imagen: '',
     estado: 'beta',
     tecnologia: 'HTML · localStorage'
+  },
+  {
+    id: 'barberia',
+    nombre: 'Directorio Barber',
+    descripcion: 'Directorio de barberías para buscar y solicitar turnos online. Los barberos se registran gratis para aparecer en su ciudad.',
+    url: 'https://barberiaia.netlify.app/',
+    imagen: '',
+    estado: 'activo',
+    tecnologia: 'Web · Turnos'
+  },
+  {
+    id: 'egtechpos',
+    nombre: 'E-Gtech POS',
+    descripcion: 'Sistema de punto de venta profesional: ventas, control de inventario, códigos de barras y reportes. Adaptable a distintos rubros.',
+    url: 'https://seviciosrg.netlify.app/',
+    imagen: '',
+    estado: 'activo',
+    tecnologia: 'Web · POS'
   }
 ]
 
