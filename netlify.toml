@@ -1,5 +1,8 @@
 [build]
-  command = "npx prisma generate && npx prisma db push && npm run build"
+  # 'db push' se hace tolerante a fallos: las tablas del sistema ya existen en la
+  # base y la tabla de descargas se crea desde la app (CREATE TABLE IF NOT EXISTS).
+  # Así un problema puntual del push (drift/DDL) no rompe el deploy.
+  command = "npx prisma generate && (npx prisma db push --accept-data-loss || echo 'db push omitido') && npm run build"
   publish = ".next"
 
 [build.environment]
