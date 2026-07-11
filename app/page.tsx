@@ -184,54 +184,15 @@ export default function Home() {
   const ADMIN_PASS = 'electrogamez2025'
 
   useEffect(() => {
-    const stored = localStorage.getItem('eg_apps_novedades')
-    if (stored) {
-      try { setApps(JSON.parse(stored)) } catch { setApps([]) }
-    } else {
-      // Apps de ejemplo iniciales
-      const ejemplo: AppCard[] = [
-        {
-          id: '1',
-          titulo: 'Revo Uninstaller',
-          descripcion: 'Desinstalador avanzado que elimina completamente programas y sus residuos del registro. Ideal para mantener el PC limpio.',
-          imagen: 'https://www.revouninstaller.com/wp-content/uploads/2021/06/revo-uninstaller-free-icon.png',
-          linkDescarga: 'https://www.revouninstaller.com/revo-uninstaller-free-download/',
-          sitioFuente: 'revouninstaller.com',
-          categoria: 'Utilidades',
-          fechaAgregado: new Date().toISOString(),
-          destacado: true
-        },
-        {
-          id: '2',
-          titulo: 'HWMonitor',
-          descripcion: 'Monitorea temperaturas, voltajes y velocidades de ventiladores en tiempo real. Imprescindible para diagnóstico.',
-          imagen: 'https://www.cpuid.com/medias/images/softwares/hwmonitor-pro.png',
-          linkDescarga: 'https://www.cpuid.com/softwares/hwmonitor.html',
-          sitioFuente: 'cpuid.com',
-          categoria: 'Utilidades',
-          fechaAgregado: new Date().toISOString(),
-          destacado: false
-        },
-        {
-          id: '3',
-          titulo: 'Malwarebytes Free',
-          descripcion: 'Detecta y elimina malware, ransomware y spyware. Versión gratuita ideal para escaneos puntuales.',
-          imagen: 'https://images.malwarebytes.com/web/2023/05/mb-icon-512.png',
-          linkDescarga: 'https://www.malwarebytes.com/mwb-download',
-          sitioFuente: 'malwarebytes.com',
-          categoria: 'Seguridad',
-          fechaAgregado: new Date().toISOString(),
-          destacado: true
-        }
-      ]
-      setApps(ejemplo)
-      localStorage.setItem('eg_apps_novedades', JSON.stringify(ejemplo))
-    }
+    // Las descargas se leen de la base de datos → iguales en todas las PC / visitantes
+    fetch('/api/descargas')
+      .then(r => r.ok ? r.json() : [])
+      .then(setApps)
+      .catch(() => setApps([]))
   }, [])
 
   function saveApps(newApps: AppCard[]) {
     setApps(newApps)
-    localStorage.setItem('eg_apps_novedades', JSON.stringify(newApps))
   }
 
   function handleAdminLogin() {

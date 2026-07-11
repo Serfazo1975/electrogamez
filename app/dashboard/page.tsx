@@ -122,7 +122,7 @@ const selectCls = "w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-
 
 type Tab = 'resumen' | 'reparaciones' | 'clientes' | 'inventario' | 'descargas'
 
-// Apps/Descargas (se guardan en localStorage, compartidas con la landing pública)
+// Apps/Descargas (se guardan en la base de datos → visibles para todos los visitantes)
 interface AppCard {
   id: string
   titulo: string
@@ -135,7 +135,6 @@ interface AppCard {
   destacado: boolean
 }
 const APP_CATEGORIAS = ['Utilidades', 'Seguridad', 'Multimedia', 'Juegos', 'Drivers', 'Oficina', 'Sistema']
-const APPS_LS_KEY = 'eg_apps_novedades'
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
@@ -166,32 +165,39 @@ export default function DashboardPage() {
     return () => { active = false }
   }, [])
 
-  // Apps / Descargas (localStorage compartido con la landing)
+  // Apps / Descargas (guardadas en la base de datos → visibles para todos)
   const [apps, setApps] = useState<AppCard[]>([])
   const [showAppForm, setShowAppForm] = useState(false)
   const [editingApp, setEditingApp] = useState<AppCard | null>(null)
   const emptyApp = { titulo: '', descripcion: '', imagen: '', linkDescarga: '', sitioFuente: '', categoria: 'Utilidades', destacado: false }
   const [appForm, setAppForm] = useState<Omit<AppCard, 'id' | 'fechaAgregado'>>(emptyApp)
 
-  useEffect(() => {
-    const stored = localStorage.getItem(APPS_LS_KEY)
-    if (stored) { try { setApps(JSON.parse(stored)) } catch { setApps([]) } }
-  }, [])
-
-  function saveApps(next: AppCard[]) {
-    setApps(next)
-    localStorage.setItem(APPS_LS_KEY, JSON.stringify(next))
+  async function loadApps() {
+    try {
+      const res = await fetch('/api/descargas')
+      if (res.ok) setApps(await res.json())
+    } catch { /* sin conexión: se deja la lista actual */ }
   }
 
-  function submitApp(e: React.FormEvent) {
+  useEffect(() => { loadApps() }, [])
+
+  async function submitApp(e: React.FormEvent) {
     e.preventDefault()
     if (!appForm.titulo || !appForm.linkDescarga) return
-    if (editingApp) {
-      saveApps(apps.map(a => a.id === editingApp.id ? { ...editingApp, ...appForm } : a))
-    } else {
-      saveApps([{ ...appForm, id: String(Date.now()), fechaAgregado: new Date().toISOString() }, ...apps])
+    const url = editingApp ? `/api/descargas/${editingApp.id}` : '/api/descargas'
+    const method = editingApp ? 'PUT' : 'POST'
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(appForm),
+      })
+      if (!res.ok) { alert('No se pudo guardar. Verificá que iniciaste sesión como administrador.'); return }
+      await loadApps()
+      setShowAppForm(false); setEditingApp(null); setAppForm(emptyApp)
+    } catch {
+      alert('No se pudo guardar (sin conexión).')
     }
-    setShowAppForm(false); setEditingApp(null); setAppForm(emptyApp)
   }
 
   function editApp(a: AppCard) {
@@ -200,8 +206,13 @@ export default function DashboardPage() {
     setShowAppForm(true)
   }
 
-  function deleteApp(id: string) {
-    if (confirm('¿Eliminar esta descarga?')) saveApps(apps.filter(a => a.id !== id))
+  async function deleteApp(id: string) {
+    if (!confirm('¿Eliminar esta descarga?')) return
+    try {
+      const res = await fetch(`/api/descargas/${id}`, { method: 'DELETE' })
+      if (res.ok) await loadApps()
+      else alert('No se pudo eliminar.')
+    } catch { alert('No se pudo eliminar (sin conexión).') }
   }
 
   // Modales
