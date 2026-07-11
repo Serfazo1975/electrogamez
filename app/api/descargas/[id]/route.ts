@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { updateDescarga, deleteDescarga } from '@/lib/descargas'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,24 +11,21 @@ function isAdmin(req: NextRequest) {
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   const d = await req.json()
-  const item = await prisma.appDownload.update({
-    where: { id: params.id },
-    data: {
-      titulo: d.titulo,
-      descripcion: d.descripcion || '',
-      imagen: d.imagen || '',
-      linkDescarga: d.linkDescarga,
-      sitioFuente: d.sitioFuente || '',
-      categoria: d.categoria || 'Utilidades',
-      destacado: !!d.destacado,
-    },
-  })
-  return NextResponse.json(item)
+  try {
+    await updateDescarga(params.id, d)
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'No se pudo actualizar' }, { status: 500 })
+  }
 }
 
 // Admin: eliminar una descarga
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   if (!isAdmin(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
-  await prisma.appDownload.delete({ where: { id: params.id } })
-  return NextResponse.json({ ok: true })
+  try {
+    await deleteDescarga(params.id)
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'No se pudo eliminar' }, { status: 500 })
+  }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { listDescargas, createDescarga } from '@/lib/descargas'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,8 +10,7 @@ function isAdmin(req: NextRequest) {
 // Público: lista de descargas para la web
 export async function GET() {
   try {
-    const items = await prisma.appDownload.findMany({ orderBy: { fechaAgregado: 'desc' } })
-    return NextResponse.json(items)
+    return NextResponse.json(await listDescargas())
   } catch {
     return NextResponse.json([])
   }
@@ -24,16 +23,10 @@ export async function POST(req: NextRequest) {
   if (!d.titulo || !d.linkDescarga) {
     return NextResponse.json({ error: 'Faltan título o link' }, { status: 400 })
   }
-  const item = await prisma.appDownload.create({
-    data: {
-      titulo: d.titulo,
-      descripcion: d.descripcion || '',
-      imagen: d.imagen || '',
-      linkDescarga: d.linkDescarga,
-      sitioFuente: d.sitioFuente || '',
-      categoria: d.categoria || 'Utilidades',
-      destacado: !!d.destacado,
-    },
-  })
-  return NextResponse.json(item)
+  try {
+    const res = await createDescarga(d)
+    return NextResponse.json(res)
+  } catch {
+    return NextResponse.json({ error: 'No se pudo guardar' }, { status: 500 })
+  }
 }

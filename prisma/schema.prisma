@@ -222,17 +222,3 @@ model DownloadLog {
   file      ProjectFile? @relation(fields: [fileId], references: [id])
   createdAt DateTime     @default(now())
 }
-
-// Descargas/apps de la sección pública "Descargas y Novedades".
-// Se guardan en la base para que se vean en TODAS las PC / visitantes.
-model AppDownload {
-  id            String   @id @default(cuid())
-  titulo        String
-  descripcion   String   @default("")
-  imagen        String   @default("")
-  linkDescarga  String
-  sitioFuente   String   @default("")
-  categoria     String   @default("Utilidades")
-  destacado     Boolean  @default(false)
-  fechaAgregado DateTime @default(now())
-}
