@@ -45,7 +45,7 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
     nombre: 'TecniGest',
     descripcion: 'Sistema de gestión para talleres técnicos. Control de reparaciones, clientes, inventario y seguimiento online.',
     url: 'https://tecnigest.netlify.app/#/',
-    imagen: '',
+    imagen: '/proyecto-tecnigest.jpg',
     estado: 'activo',
     tecnologia: 'Next.js · PostgreSQL'
   },
@@ -54,7 +54,7 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
     nombre: 'FirmaDoc',
     descripcion: 'Firma digital de documentos PDF desde el navegador. Sin instalaciones. Freemium.',
     url: 'https://firmadocpdf.netlify.app',
-    imagen: '',
+    imagen: '/proyecto-firmadoc.jpg',
     estado: 'activo',
     tecnologia: 'HTML · pdf-lib · PWA'
   },
@@ -93,6 +93,7 @@ const SERVICES = [
   {
     icon: <Gamepad2 className="w-8 h-8" />,
     title: 'PlayStation 4 & 5',
+    img: '/svc-playstation.jpg',
     desc: 'Reparación especializada de consolas PlayStation. Chip HDMI, ventiladores, lectores de disco, problemas de encendido y más.',
     items: ['Chip HDMI PS5', 'Limpieza de ventiladores', 'Reparación lector blu-ray', 'Problemas de encendido'],
     color: 'from-blue-600/20 to-blue-600/5',
@@ -102,6 +103,7 @@ const SERVICES = [
   {
     icon: <Monitor className="w-8 h-8" />,
     title: 'PC & Escritorio',
+    img: '/svc-pc.jpg',
     desc: 'Diagnóstico, reparación y actualización de computadoras de escritorio. Cambio de componentes y optimización.',
     items: ['Diagnóstico completo', 'Cambio de componentes', 'Instalación de Windows', 'Optimización de rendimiento'],
     color: 'from-cyan-600/20 to-cyan-600/5',
@@ -111,6 +113,7 @@ const SERVICES = [
   {
     icon: <Cpu className="w-8 h-8" />,
     title: 'Laptops & Notebooks',
+    img: '/svc-laptop.jpg',
     desc: 'Reparación de pantallas, teclados, bisagras y problemas de sobrecalentamiento en todo tipo de laptops.',
     items: ['Cambio de pantalla', 'Reparación de bisagras', 'Cambio de batería', 'Teclados y touchpad'],
     color: 'from-violet-600/20 to-violet-600/5',
@@ -120,6 +123,7 @@ const SERVICES = [
   {
     icon: <Wrench className="w-8 h-8" />,
     title: 'Mantenimiento Preventivo',
+    img: '/svc-ventilador.jpg',
     desc: 'Limpieza profunda, cambio de pasta térmica y revisión general para extender la vida útil de tus equipos.',
     items: ['Limpieza interna profunda', 'Cambio de pasta térmica', 'Revisión general', 'Optimización del sistema'],
     color: 'from-emerald-600/20 to-emerald-600/5',
@@ -340,135 +344,177 @@ export default function Home() {
         )}
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="pt-28 pb-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-20 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* ── DASHBOARD (hero + servicios + sidebar) ── */}
+      <section className="pt-24 pb-10 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 tech-grid pointer-events-none" />
+        <div className="absolute top-10 right-0 w-[32rem] h-[32rem] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto relative">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-blue-950 border border-blue-700/50 rounded-full px-4 py-1.5 text-blue-400 text-sm mb-8">
-              <MapPin className="w-3.5 h-3.5" />
-              Servicio técnico — Rio Gallegos, Argentina
-            </div>
+        <div className="max-w-7xl mx-auto relative grid lg:grid-cols-[1fr_320px] gap-6 items-start">
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 tracking-tight">
-              Reparamos tu{' '}
-              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                PlayStation
-              </span>
-              {' '}y tu PC
-            </h1>
+          {/* ── COLUMNA PRINCIPAL ── */}
+          <div className="min-w-0 space-y-6">
 
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl leading-relaxed">
-              Diagnóstico express, reparaciones con garantía escrita y precios transparentes.
-              Más de 10 años de experiencia en Rio Gallegos.
-            </p>
-
-            <div className="flex flex-wrap gap-4 mb-16">
-              <a
-                href="https://wa.me/5491156975880"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-8 py-3.5 rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/20"
-              >
-                <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
-              </a>
-              <a
-                href="/seguimiento"
-                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 px-8 py-3.5 rounded-xl font-medium transition-all text-gray-200"
-              >
-                <Search className="w-4 h-4" /> Seguir mi reparación
-              </a>
-              <a
-                href="#novedades"
-                className="flex items-center gap-2 bg-cyan-900/40 hover:bg-cyan-800/60 border border-cyan-700/50 hover:border-cyan-500/70 px-8 py-3.5 rounded-xl font-medium transition-all text-cyan-300 hover:text-white"
-              >
-                <Download className="w-4 h-4" /> Descargas gratuitas
-              </a>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {STATS.map((s) => (
-                <div key={s.label}>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{s.value}</div>
-                  <div className="text-sm text-gray-500 mt-1">{s.label}</div>
+            {/* HERO con foto de fondo */}
+            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[340px] flex items-center">
+              <div className="absolute inset-0">
+                <img src="/hero-sergio.jpg" alt="Sergio reparando una placa en el taller de ElectroGamez" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/70 to-gray-950/20" />
+              </div>
+              <div className="relative p-8 md:p-10 max-w-xl">
+                <div className="inline-flex items-center gap-2 bg-blue-950/60 border border-blue-700/50 rounded-full px-4 py-1.5 text-blue-300 text-sm mb-5 backdrop-blur">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+                  </span>
+                  Servicio técnico — Río Gallegos, Argentina
                 </div>
-              ))}
+                <h1 className="text-4xl md:text-5xl font-bold leading-[1.05] mb-4 tracking-tight">
+                  Reparamos lo que{' '}
+                  <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">otros no pueden</span>.
+                </h1>
+                <p className="text-gray-300 mb-6 max-w-lg leading-relaxed">
+                  Reparación a nivel componente de PlayStation y PC. Diagnóstico en 24h, garantía escrita y precios sin sorpresas.
+                </p>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-6 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/25">
+                    <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
+                  </a>
+                  <a href="/seguimiento" className="flex items-center gap-2 bg-gray-800/80 hover:bg-gray-700 border border-gray-700 hover:border-cyan-600/50 px-6 py-3 rounded-xl font-medium transition-all text-gray-200">
+                    <Search className="w-4 h-4" /> Seguir reparación
+                  </a>
+                </div>
+                <div className="inline-flex items-center gap-3 bg-gray-900/80 border border-gray-800 rounded-xl px-4 py-2.5 backdrop-blur">
+                  <span className="bg-[#e2231a] text-white font-bold text-[13px] px-2 py-0.5 rounded tracking-tight">Lenovo</span>
+                  <div className="leading-tight">
+                    <p className="text-[13px] font-semibold text-white">Técnico autorizado</p>
+                    <p className="text-xs text-gray-400">Certificación oficial de fábrica</p>
+                  </div>
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                </div>
+              </div>
             </div>
+
+            {/* STATS */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {STATS.map((s, i) => {
+                const StatIcon = [Wrench, Clock, CheckCircle, Zap][i % 4]
+                return (
+                  <div key={s.label} className="neon-card bg-gray-900/70 border border-gray-800 rounded-2xl p-4 hover:-translate-y-1 transition-transform">
+                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 grid place-items-center text-cyan-400 mb-3">
+                      <StatIcon className="w-4 h-4" />
+                    </div>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{s.value}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* SERVICIOS */}
+            <div id="servicios" className="pt-4">
+              <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-2">Lo que hacemos</p>
+              <h2 className="text-3xl font-bold mb-6">Servicios de reparación</h2>
+              <div className="grid sm:grid-cols-2 gap-5">
+{SERVICES.map((s) => (
+              <div key={s.title} className="neon-card group relative bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 flex flex-col">
+                {/* Imagen 3D del servicio */}
+                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
+                  <img src={s.img} alt={s.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent" />
+                  <div className={`absolute top-3 left-3 p-2 ${s.iconColor} rounded-lg backdrop-blur`}>
+                    {s.icon}
+                  </div>
+                  <h3 className="absolute bottom-3 left-4 right-4 font-bold text-lg group-hover:text-cyan-400 transition-colors">{s.title}</h3>
+                </div>
+                {/* Contenido */}
+                <div className="p-5 flex flex-col flex-1">
+                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">{s.desc}</p>
+                  <ul className="space-y-2 mt-auto">
+                    {s.items.map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-gray-300">
+                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+              </div>
+            </div>
+
           </div>
-        </div>
-      </section>
 
-      {/* ── ACCESOS RÁPIDOS ── */}
-      <section className="py-5 px-4 bg-gray-900/70 border-y border-gray-800">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-            {/* Seguimiento */}
-            <a href="/seguimiento" className="flex items-center gap-3 bg-gray-800/60 hover:bg-blue-900/30 border border-gray-700 hover:border-blue-600/50 rounded-xl px-4 py-3 transition-all group">
-              <div className="p-2 bg-blue-600/20 rounded-lg text-blue-400 flex-shrink-0">
-                <Search className="w-4 h-4" />
+          {/* ── SIDEBAR ── */}
+          <aside className="space-y-5 lg:sticky lg:top-24">
+            {/* Tienda */}
+            <a href="/tienda" className="neon-card group block bg-gradient-to-br from-blue-950/60 to-cyan-950/40 border border-cyan-800/40 rounded-2xl p-5 hover:-translate-y-1 transition-all">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 grid place-items-center text-gray-950">
+                  <ShoppingCart className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full px-2.5 py-0.5 ml-auto">Nuevo</span>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 leading-none mb-0.5">Seguí tu equipo</p>
-                <p className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">Estado de reparación</p>
-              </div>
+              <h3 className="font-bold text-lg group-hover:text-cyan-400 transition-colors">Tienda ElectroGamez</h3>
+              <p className="text-sm text-gray-400 mt-1 mb-3">Accesorios gaming y tecnología con envío a domicilio sin cargo.</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-400">Ver productos <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></span>
             </a>
 
             {/* Descargas */}
-            <a href="#novedades" className="flex items-center gap-3 bg-gray-800/60 hover:bg-cyan-900/30 border border-gray-700 hover:border-cyan-600/50 rounded-xl px-4 py-3 transition-all group">
-              <div className="p-2 bg-cyan-600/20 rounded-lg text-cyan-400 flex-shrink-0">
-                <Download className="w-4 h-4" />
+            <a href="#novedades" className="neon-card group block bg-gray-900/60 border border-gray-800 rounded-2xl p-5 hover:-translate-y-1 transition-all">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-600/30 grid place-items-center text-cyan-400">
+                  <Download className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-semibold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 rounded-full px-2.5 py-0.5 ml-auto">Gratis</span>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 leading-none mb-0.5">100% gratuito</p>
-                <p className="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">Herramientas y descargas</p>
-              </div>
+              <h3 className="font-bold text-lg group-hover:text-cyan-400 transition-colors">Herramientas y descargas</h3>
+              <p className="text-sm text-gray-400 mt-1 mb-3">Software seleccionado por nuestros técnicos. Confiable y sin publicidad.</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-400">Ver descargas <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></span>
             </a>
 
-            {/* Proyectos */}
-            <a href="#proyectos" className="flex items-center gap-3 bg-gray-800/60 hover:bg-violet-900/30 border border-gray-700 hover:border-violet-600/50 rounded-xl px-4 py-3 transition-all group">
-              <div className="p-2 bg-violet-600/20 rounded-lg text-violet-400 flex-shrink-0">
-                <Globe className="w-4 h-4" />
+            {/* Seguimiento */}
+            <a href="/seguimiento" className="neon-card group block bg-gray-900/60 border border-gray-800 rounded-2xl p-5 hover:-translate-y-1 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-600/30 grid place-items-center text-blue-400 mb-3">
+                <Search className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-gray-500 leading-none mb-0.5">Apps en producción</p>
-                <p className="text-sm font-semibold text-white group-hover:text-violet-400 transition-colors">Nuestros proyectos</p>
-              </div>
+              <h3 className="font-bold text-lg group-hover:text-blue-400 transition-colors">Seguí tu reparación</h3>
+              <p className="text-sm text-gray-400 mt-1 mb-3">Consultá el estado de tu equipo con tu código de seguimiento.</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-400">Ver estado <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></span>
             </a>
+          </aside>
 
-          </div>
         </div>
       </section>
 
-      {/* ── SERVICIOS ── */}
-      <section id="servicios" className="py-24 px-4">
+      {/* ── AUTORIDAD ── */}
+      <section className="px-4 py-16 relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-14">
-            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Lo que hacemos</p>
-            <h2 className="text-4xl font-bold mb-4">Servicios de reparación</h2>
-            <p className="text-gray-400 text-lg max-w-xl">Reparamos todo tipo de equipos electrónicos con garantía escrita en cada trabajo.</p>
-          </div>
+          <p className="text-cyan-400 text-sm font-medium uppercase tracking-widest mb-3">Autoridad real</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Detrás de cada reparación, un profesional certificado.</h2>
+          <p className="text-gray-400 max-w-2xl mb-10">
+            No es un taller más. Es microsoldadura bajo microscopio, infraestructura de servidores y certificación oficial de fábrica.
+          </p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {SERVICES.map((s) => (
-              <div key={s.title} className={`relative bg-gradient-to-b ${s.color} border border-gray-800 ${s.border} rounded-2xl p-6 transition-all duration-300`}>
-                <div className={`p-3 ${s.iconColor} rounded-xl w-fit mb-5`}>
-                  {s.icon}
-                </div>
-                <h3 className="font-bold text-lg mb-2">{s.title}</h3>
-                <p className="text-gray-400 text-sm mb-5 leading-relaxed">{s.desc}</p>
-                <ul className="space-y-2">
-                  {s.items.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-gray-300">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+          <div className="grid lg:grid-cols-2 gap-5">
+            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[320px] group">
+              <img src="/taller.jpg" alt="Sergio en el taller con microscopio de electrónica" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5">
+                <p className="text-xs font-semibold tracking-wider uppercase text-cyan-400">Nuestro taller</p>
+                <h3 className="text-xl font-bold mt-1">Microsoldadura de precisión</h3>
+                <p className="text-sm text-gray-400 mt-1">Trabajo a nivel chip bajo microscopio — lo que pocos hacen en la Patagonia.</p>
               </div>
-            ))}
+            </div>
+            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[320px] group">
+              <img src="/sergio-server.jpg" alt="Sergio trabajando con servidores IBM" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5">
+                <p className="text-xs font-semibold tracking-wider uppercase text-cyan-400">Más que consolas</p>
+                <h3 className="text-xl font-bold mt-1">Infraestructura y servidores</h3>
+                <p className="text-sm text-gray-400 mt-1">Redes, servidores IBM y sistemas críticos. Capacidad técnica de nivel empresa.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -846,16 +892,21 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {PROYECTOS_PRODUCCION_DEFAULT.map(p => (
-              <div key={p.id} className="bg-gray-900 border border-gray-800 hover:border-violet-700/50 rounded-2xl overflow-hidden transition-all duration-200 group hover:shadow-xl hover:shadow-violet-900/10 flex flex-col">
+              <div key={p.id} className="neon-card bg-gray-900 border border-gray-800 hover:border-violet-700/50 rounded-2xl overflow-hidden transition-all duration-200 group hover:-translate-y-1 flex flex-col">
 
                 {/* Header visual */}
-                <div className="h-36 bg-gradient-to-br from-violet-900/30 via-blue-900/20 to-cyan-900/20 relative flex items-center justify-center border-b border-gray-800">
-                  <div className="text-5xl opacity-20 font-black tracking-tighter text-white select-none">
-                    {p.nombre.substring(0, 2).toUpperCase()}
-                  </div>
+                <div className="h-40 relative flex items-center justify-center border-b border-gray-800 overflow-hidden bg-gradient-to-br from-violet-900/30 via-blue-900/20 to-cyan-900/20">
+                  {p.imagen ? (
+                    <img src={p.imagen} alt={p.nombre} className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <div className="text-5xl opacity-20 font-black tracking-tighter text-white select-none">
+                      {p.nombre.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  {p.imagen && <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />}
                   <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium ${ESTADO_BADGE[p.estado].color}`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-current inline-block"></span>
+                    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium backdrop-blur ${ESTADO_BADGE[p.estado].color}`}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-current inline-block animate-pulse"></span>
                       {ESTADO_BADGE[p.estado].label}
                     </span>
                   </div>
