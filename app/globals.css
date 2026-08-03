@@ -25,3 +25,28 @@ body {
 ::-webkit-scrollbar-track { background: #1f2937; }
 ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+/* ── Firma visual del rediseño: neon sutil ── */
+.neon-card { position: relative; isolation: isolate; }
+.neon-card::before {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
+  background: linear-gradient(135deg, rgba(56,189,248,0), rgba(56,189,248,.6), rgba(59,130,246,.4), rgba(56,189,248,0));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity .35s ease; z-index: -1;
+}
+.neon-card:hover::before { opacity: 1; }
+.neon-card:hover { box-shadow: 0 0 40px -10px rgba(56,189,248,.4); }
+
+.tech-grid {
+  background-image:
+    linear-gradient(rgba(56,189,248,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 75%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-card::before { transition: none; }
+}
