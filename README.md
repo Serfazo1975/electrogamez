@@ -7,7 +7,7 @@
 
 ## 📋 Descripción del Proyecto
 
-ElectroGamez es una aplicación web moderna para la gestión de un servicio técnico especializado en reparación de computadoras y consolas PlayStation en Santiago, Chile. El proyecto incluye una landing page profesional y un dashboard administrativo completo.
+ElectroGamez es una aplicación web moderna para la gestión de un servicio técnico especializado en reparación de computadoras y consolas PlayStation en Rio Gallegos, Argentina. El proyecto incluye una landing page profesional y un dashboard administrativo completo.
 
 ## 🚀 Estado Actual del Proyecto
 
