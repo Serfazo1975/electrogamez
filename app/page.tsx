@@ -9,7 +9,8 @@ import {
   Facebook, Plus, Trash2, Edit3, Save, Globe,
   ChevronRight, Package, Sparkles, ArrowUpRight,
   Settings, LogOut,
-  Server, Wifi, BatteryCharging, Printer, Building2
+  Server, Wifi, BatteryCharging, Printer, Building2,
+  ShoppingCart
 } from 'lucide-react'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
@@ -79,6 +80,7 @@ const PROYECTOS_PRODUCCION_DEFAULT: ProyectoProduccion[] = [
 
 const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
+  { label: 'Tienda', href: '/tienda' },
   { label: 'Empresas', href: '#empresas' },
   { label: 'Novedades', href: '#novedades' },
   { label: 'Proyectos', href: '#proyectos' },
@@ -262,9 +264,15 @@ export default function Home() {
 
           <div className="hidden md:flex items-center gap-6">
             {NAV_LINKS.map((l) => (
-              <a key={l.label} href={l.href} className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
-                {l.label}
-              </a>
+              l.href === '/tienda' ? (
+                <a key={l.label} href={l.href} className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-semibold">
+                  <ShoppingCart className="w-4 h-4" /> {l.label}
+                </a>
+              ) : (
+                <a key={l.label} href={l.href} className="text-gray-400 hover:text-white transition-colors text-sm font-medium">
+                  {l.label}
+                </a>
+              )
             ))}
           </div>
 
@@ -295,12 +303,15 @@ export default function Home() {
             {NAV_LINKS.map((l) => {
               const isNovedades = l.href === '#novedades'
               const isProyectos = l.href === '#proyectos'
+              const isTienda = l.href === '/tienda'
               return (
                 <a
                   key={l.label}
                   href={l.href}
                   className={`flex items-center gap-2 py-2 px-2 rounded-lg text-sm transition-colors ${
-                    isNovedades
+                    isTienda
+                      ? 'text-cyan-400 hover:bg-cyan-900/20 font-semibold'
+                      : isNovedades
                       ? 'text-cyan-400 hover:bg-cyan-900/20'
                       : isProyectos
                       ? 'text-violet-400 hover:bg-violet-900/20'
@@ -308,10 +319,12 @@ export default function Home() {
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >
+                  {isTienda && <ShoppingCart className="w-4 h-4" />}
                   {isNovedades && <Download className="w-4 h-4" />}
                   {isProyectos && <Globe className="w-4 h-4" />}
                   {l.label}
                   {isNovedades && <span className="ml-auto text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/30">Gratis</span>}
+                  {isTienda && <span className="ml-auto text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">Nuevo</span>}
                 </a>
               )
             })}
