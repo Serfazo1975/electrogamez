@@ -11,10 +11,10 @@ import { emitirFactura, listarFacturas, DatosFactura } from '@/lib/afip';
 
 export const dynamic = 'force-dynamic';
 
-// ⚠️ Ajustar si tu chequeo de admin es distinto al de las otras rutas admin
+// ⚠️ Verificación de admin: coincide con el login real (cookie eg_admin = 'true')
 function esAdmin(): boolean {
   const cookie = cookies().get('eg_admin');
-  return !!cookie && cookie.value === (process.env.ADMIN_PASSWORD || '');
+  return !!cookie && cookie.value === 'true';
 }
 
 export async function POST(req: NextRequest) {
