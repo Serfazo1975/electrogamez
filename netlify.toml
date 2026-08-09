@@ -1,13 +1,10 @@
 [build]
-  command = "npx prisma generate && npx prisma db push --accept-data-loss && npm run build"
+  command = "npx prisma generate && npm run build"
   publish = ".next"
-
 [build.environment]
   NODE_VERSION = "18"
-
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
 [[headers]]
   for = "/*"
   [headers.values]
