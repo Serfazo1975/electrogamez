@@ -4,7 +4,7 @@
 // Requiere: npm install node-forge  (+ npm i -D @types/node-forge)
 //
 // Variables de entorno (Netlify):
-//   AFIP_CUIT        = 20XXXXXXXXX  (sin guiones)
+//   AFIP_CUIT        = 20214293286  (sin guiones)
 //   AFIP_PTO_VTA     = 3            (el punto de venta Web Services que crees)
 //   AFIP_CBTE_TIPO   = 11           (11 = Factura C monotributo | 6 = Factura B RI)
 //   AFIP_ENV         = homo         ("homo" = pruebas | "prod" = producción)
