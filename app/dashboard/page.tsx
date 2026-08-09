@@ -423,7 +423,15 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-gray-700 space-y-1">
+       <div className="px-3 py-4 border-t border-gray-700 space-y-1">
+          <a href="/admin/facturacion"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-green-400 hover:text-white hover:bg-green-600 transition-colors">
+            <span className="text-lg">🧾</span> Facturar (ARCA)
+          </a>
+          <a href="/admin/presupuesto"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-orange-400 hover:text-white hover:bg-orange-600 transition-colors">
+            <span className="text-lg">📄</span> Presupuesto
+          </a>
           <button onClick={() => setShowConfig(true)}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
             <Settings className="w-5 h-5" /> Configuración
@@ -436,8 +444,7 @@ export default function DashboardPage() {
             <LogOut className="w-5 h-5" /> Cerrar sesión
           </button>
         </div>
-      </aside>
-
+       </aside>
       {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       {/* ── Main ── */}
