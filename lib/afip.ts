@@ -4,7 +4,7 @@
 // Requiere: npm install node-forge  (+ npm i -D @types/node-forge)
 //
 // Variables de entorno (Netlify):
-//   AFIP_CUIT        = 20214293286  (sin guiones)
+//   AFIP_CUIT        = 20XXXXXXXXX  (sin guiones)
 //   AFIP_PTO_VTA     = 3            (el punto de venta Web Services que crees)
 //   AFIP_CBTE_TIPO   = 11           (11 = Factura C monotributo | 6 = Factura B RI)
 //   AFIP_ENV         = homo         ("homo" = pruebas | "prod" = producción)
@@ -346,7 +346,7 @@ export async function emitirFactura(datos: DatosFactura): Promise<ResultadoFactu
       `INSERT INTO facturas_afip
         (cbte_tipo, pto_vta, cbte_nro, doc_tipo, doc_nro, cond_iva_receptor,
          imp_total, imp_neto, imp_iva, cae, cae_vto, resultado, observaciones, detalle, entorno)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15)`,
       CBTE_TIPO, PTO_VTA, proximo, docTipo, docNro, condIva,
       total, impNeto, impIVA, cae || null, caeVto || null,
       resultado || 'ERROR', observaciones || null,
