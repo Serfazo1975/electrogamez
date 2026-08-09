@@ -231,17 +231,28 @@ export interface DatosFactura {
   docTipo?: number;   // 99 = Consumidor Final | 96 = DNI | 80 = CUIT
   docNro?: number;    // 0 si es consumidor final
   condIvaReceptor?: number; // 5 = Consumidor Final | 1 = RI | 6 = Monotributo (RG 5616)
+  concepto?: number;  // 1 = Productos | 2 = Servicios | 3 = Productos y Servicios
+  fechaServDesde?: string; // 'YYYYMMDD' (obligatorio si concepto 2 o 3)
+  fechaServHasta?: string; // 'YYYYMMDD'
+  fechaVtoPago?: string;   // 'YYYYMMDD'
   items: ItemFactura[];
 }
 
 export interface ResultadoFactura {
   ok: boolean;
   cae?: string;
-  caeVto?: string;
+  caeVto?: string;       // 'YYYYMMDD'
   cbteNro?: number;
   cbteTipo?: number;
   ptoVta?: number;
   total?: number;
+  fechaCbte?: string;    // 'YYYYMMDD'
+  docTipo?: number;
+  docNro?: number;
+  concepto?: number;
+  fechaServDesde?: string;
+  fechaServHasta?: string;
+  fechaVtoPago?: string;
   error?: string;
   observaciones?: string;
 }
@@ -269,6 +280,24 @@ export async function emitirFactura(datos: DatosFactura): Promise<ResultadoFactu
     const hoy = new Date();
     const fechaCbte = `${hoy.getFullYear()}${String(hoy.getMonth() + 1).padStart(2, '0')}${String(hoy.getDate()).padStart(2, '0')}`;
 
+    // Concepto: 1 = Productos | 2 = Servicios | 3 = Productos y Servicios
+    const concepto = datos.concepto ?? 1;
+
+    // Para Servicios (2) y Ambos (3), ARCA exige fechas de servicio y vto de pago.
+    // Si no se envían, se usan por defecto la fecha de hoy y el vto a +10 días.
+    let bloqueFechasServ = '';
+    let fSvcDesde = datos.fechaServDesde || fechaCbte;
+    let fSvcHasta = datos.fechaServHasta || fechaCbte;
+    let fVtoPago = datos.fechaVtoPago || sumarDias(hoy, 10);
+    if (concepto === 2 || concepto === 3) {
+      bloqueFechasServ =
+        `<ar:FchServDesde>${fSvcDesde}</ar:FchServDesde>` +
+        `<ar:FchServHasta>${fSvcHasta}</ar:FchServHasta>` +
+        `<ar:FchVtoPago>${fVtoPago}</ar:FchVtoPago>`;
+    } else {
+      fSvcDesde = ''; fSvcHasta = ''; fVtoPago = '';
+    }
+
     const bloqueIva = esFacturaC
       ? ''
       : `<ar:Iva><ar:AlicIva><ar:Id>5</ar:Id><ar:BaseImp>${impNeto.toFixed(2)}</ar:BaseImp><ar:Importe>${impIVA.toFixed(2)}</ar:Importe></ar:AlicIva></ar:Iva>`;
@@ -284,7 +313,7 @@ export async function emitirFactura(datos: DatosFactura): Promise<ResultadoFactu
           </ar:FeCabReq>
           <ar:FeDetReq>
             <ar:FECAEDetRequest>
-              <ar:Concepto>1</ar:Concepto>
+              <ar:Concepto>${concepto}</ar:Concepto>
               <ar:DocTipo>${docTipo}</ar:DocTipo>
               <ar:DocNro>${docNro}</ar:DocNro>
               <ar:CbteDesde>${proximo}</ar:CbteDesde>
@@ -296,6 +325,7 @@ export async function emitirFactura(datos: DatosFactura): Promise<ResultadoFactu
               <ar:ImpOpEx>0</ar:ImpOpEx>
               <ar:ImpTrib>0</ar:ImpTrib>
               <ar:ImpIVA>${impIVA.toFixed(2)}</ar:ImpIVA>
+              ${bloqueFechasServ}
               <ar:MonId>PES</ar:MonId>
               <ar:MonCotiz>1</ar:MonCotiz>
               <ar:CondicionIVAReceptorId>${condIva}</ar:CondicionIVAReceptorId>
@@ -335,6 +365,13 @@ export async function emitirFactura(datos: DatosFactura): Promise<ResultadoFactu
       cbteTipo: CBTE_TIPO,
       ptoVta: PTO_VTA,
       total,
+      fechaCbte,
+      docTipo,
+      docNro,
+      concepto,
+      fechaServDesde: fSvcDesde,
+      fechaServHasta: fSvcHasta,
+      fechaVtoPago: fVtoPago,
       observaciones,
     };
   } catch (e: any) {
@@ -358,4 +395,9 @@ export async function listarFacturas(limite = 50) {
 
 function redondear(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+function sumarDias(fecha: Date, dias: number): string {
+  const d = new Date(fecha.getTime() + dias * 24 * 60 * 60 * 1000);
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
 }
