@@ -4,7 +4,7 @@
 // Requiere: npm install node-forge  (+ npm i -D @types/node-forge)
 //
 // Variables de entorno (Netlify):
-//   AFIP_CUIT        = 20XXXXXXXXX  (sin guiones)
+//   AFIP_CUIT        = 20214293286  (sin guiones)
 //   AFIP_PTO_VTA     = 3            (el punto de venta Web Services que crees)
 //   AFIP_CBTE_TIPO   = 11           (11 = Factura C monotributo | 6 = Factura B RI)
 //   AFIP_ENV         = homo         ("homo" = pruebas | "prod" = producción)
@@ -385,7 +385,12 @@ export async function emitirFactura(datos: DatosFactura): Promise<ResultadoFactu
 export async function listarFacturas(limite = 50) {
   await ensureTablasAfip();
   const filas: any[] = await prisma.$queryRawUnsafe(
-    `SELECT id, cbte_tipo, pto_vta, cbte_nro, doc_tipo, doc_nro,
+    `SELECT id,
+            cbte_tipo,
+            pto_vta,
+            cbte_nro::text AS cbte_nro,
+            doc_tipo,
+            doc_nro::text AS doc_nro,
             imp_total::float AS imp_total, imp_neto::float AS imp_neto, imp_iva::float AS imp_iva,
             cae, cae_vto, resultado, observaciones, entorno, creado
      FROM facturas_afip ORDER BY id DESC LIMIT ${Math.min(limite, 200)}`
