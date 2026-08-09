@@ -325,9 +325,9 @@ export default function FacturacionPage() {
   }
 
   return (
-    <div style={{ maxWidth: 920, margin: '0 auto', padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>🧾 Facturación Electrónica ARCA</h1>
-      <p style={{ color: '#666', marginBottom: 24 }}>
+    <div style={{ minHeight: '100vh', background: '#fff', color: '#1e293b' }}><div style={{ maxWidth: 920, margin: '0 auto', padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4, color: '#0f172a' }}>🧾 Facturación Electrónica ARCA</h1>
+      <p style={{ color: '#475569', marginBottom: 24 }}>
         Factura C · Monotributo · {EMISOR.fantasia}{' '}
         <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
           Verificá en Netlify si AFIP_ENV está en homo (pruebas) o prod
@@ -335,7 +335,7 @@ export default function FacturacionPage() {
       </p>
 
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 16 }}>
-        <h3 style={{ fontWeight: 700, marginBottom: 12 }}>🧾 Tipo de comprobante</h3>
+        <h3 style={{ fontWeight: 700, marginBottom: 12, color: '#1e293b' }}>🧾 Tipo de comprobante</h3>
         <div style={{ display: 'grid', gridTemplateColumns: requiereFechas ? '1.2fr 1fr 1fr 1fr' : '1fr', gap: 12 }}>
           <div>
             <label style={lbl}>Concepto</label>
@@ -363,7 +363,7 @@ export default function FacturacionPage() {
       </div>
 
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 16 }}>
-        <h3 style={{ fontWeight: 700, marginBottom: 12 }}>👤 Cliente</h3>
+        <h3 style={{ fontWeight: 700, marginBottom: 12, color: '#1e293b' }}>👤 Cliente</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
           <div>
             <label style={lbl}>Nombre (opcional)</label>
@@ -385,7 +385,7 @@ export default function FacturacionPage() {
       </div>
 
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 16 }}>
-        <h3 style={{ fontWeight: 700, marginBottom: 12 }}>📦 Detalle</h3>
+        <h3 style={{ fontWeight: 700, marginBottom: 12, color: '#1e293b' }}>📦 Detalle</h3>
         {items.map((item, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1.5fr 1.5fr auto', gap: 8, marginBottom: 8, alignItems: 'end' }}>
             <div>{i === 0 && <label style={lbl}>Descripción</label>}
@@ -403,7 +403,7 @@ export default function FacturacionPage() {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div style={{ fontSize: 24, fontWeight: 800 }}>TOTAL: $ {formatMoney(total)}</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a' }}>TOTAL: $ {formatMoney(total)}</div>
         <button onClick={emitir} disabled={emitiendo} style={btnPrincipal}>
           {emitiendo ? '⏳ Emitiendo...' : '🧾 Emitir Factura'}
         </button>
@@ -429,7 +429,7 @@ export default function FacturacionPage() {
           <button onClick={cargarFacturas} style={btnSecundario}>{cargandoLista ? '...' : '🔄 Actualizar'}</button>
         </div>
         {facturas.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontSize: 14 }}>Todavía no hay facturas emitidas.</p>
+          <p style={{ color: '#64748b', fontSize: 14 }}>Todavía no hay facturas emitidas.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -456,12 +456,13 @@ export default function FacturacionPage() {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 }
 
-const lbl: React.CSSProperties = { display: 'block', fontSize: 12, color: '#64748b', marginBottom: 4, fontWeight: 600 };
-const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, minHeight: 42 };
+const lbl: React.CSSProperties = { display: 'block', fontSize: 12, color: '#334155', marginBottom: 4, fontWeight: 600 };
+const inp: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, minHeight: 42, color: '#0f172a', background: '#fff' };
 const th: React.CSSProperties = { padding: '8px 6px', fontWeight: 700, color: '#475569' };
 const td: React.CSSProperties = { padding: '8px 6px' };
 const btnPrincipal: React.CSSProperties = { background: '#f97316', color: '#fff', border: 'none', padding: '14px 32px', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer' };
