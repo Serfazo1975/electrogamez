@@ -92,10 +92,10 @@ const NAV_LINKS = [
 const SERVICES = [
   {
     icon: <Gamepad2 className="w-8 h-8" />,
-    title: 'PlayStation 4 & 5',
+    title: 'PlayStation 3, 4 & 5',
     img: '/svc-playstation.jpg',
-    desc: 'Reparación especializada de consolas PlayStation. Chip HDMI, ventiladores, lectores de disco, problemas de encendido y más.',
-    items: ['Chip HDMI PS5', 'Limpieza de ventiladores', 'Reparación lector blu-ray', 'Problemas de encendido'],
+    desc: 'Reparación especializada de consolas PlayStation. HDMI, ventiladores, lectores de disco, problemas de encendido y más.',
+    items: [' HDMI PS5', 'Limpieza de ventiladores', 'Reparación lector blu-ray', 'Problemas de encendido'],
     color: 'from-blue-600/20 to-blue-600/5',
     border: 'hover:border-blue-500/50',
     iconColor: 'text-blue-400 bg-blue-600/20',
@@ -143,7 +143,7 @@ const TESTIMONIALS = [
   {
     name: 'Carlos M.',
     device: 'PlayStation 5',
-    text: 'Me arreglaron el chip HDMI de la PS5 en 48 horas. Excelente trabajo, precio justo y con garantía.',
+    text: 'Me arreglaron la ficha HDMI de la PS5 en 48 horas. Excelente trabajo, precio justo y con garantía.',
     stars: 5,
   },
   {
@@ -512,7 +512,7 @@ export default function Home() {
               <div className="absolute bottom-5 left-5 right-5">
                 <p className="text-xs font-semibold tracking-wider uppercase text-cyan-400">Más que consolas</p>
                 <h3 className="text-xl font-bold mt-1">Infraestructura y servidores</h3>
-                <p className="text-sm text-gray-400 mt-1">Redes, servidores IBM y sistemas críticos. Capacidad técnica de nivel empresa.</p>
+                <p className="text-sm text-gray-400 mt-1">Redes, servidores IBM ,impresoras y sistemas críticos. Capacidad técnica de nivel empresa.</p>
               </div>
             </div>
           </div>
@@ -524,7 +524,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-bold mb-4">¿Por qué elegirnos?</h2>
-            <p className="text-gray-400 text-lg">Más de 10 años reparando equipos en Rio Gallegos</p>
+            <p className="text-gray-400 text-lg">Más de 15 años reparando equipos en Rio Gallegos y Punta Arenas</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
