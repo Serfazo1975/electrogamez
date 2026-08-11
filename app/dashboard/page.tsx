@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -16,7 +15,7 @@ import Comprobante, { ReceiptData } from './Comprobante'
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 type Repair = { id?: string; code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null }
-type Client = { id?: string; name: string; phone: string; email: string; cuit?: string; repairs: number; lastRepair: string }
+type Client = { id?: string; name: string; phone: string; email: string; cuit?: string; condIva?: string; address?: string; repairs: number; lastRepair: string }
 type Part   = { id?: string; name: string; sku: string; stock: number; minStock: number; salePrice: string }
 
 // ── Datos iniciales ───────────────────────────────────────────────────────────
@@ -259,7 +258,7 @@ export default function DashboardPage() {
   const [receipt, setReceipt] = useState<ReceiptData | null>(null)
 
   // Formulario nuevo cliente (ahora incluye CUIT)
-  const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', cuit: '' })
+  const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', cuit: '', condIva: '', address: '' })
   // Cliente en edición (null = estamos creando uno nuevo)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
 
@@ -344,14 +343,14 @@ export default function DashboardPage() {
   // Abrir el formulario para NUEVO cliente
   function openNewClient() {
     setEditingClient(null)
-    setClientForm({ name: '', phone: '', email: '', cuit: '' })
+    setClientForm({ name: '', phone: '', email: '', cuit: '', condIva: '', address: '' })
     setShowNewClient(true)
   }
 
   // Abrir el formulario para EDITAR un cliente existente
   function openEditClient(c: Client) {
     setEditingClient(c)
-    setClientForm({ name: c.name, phone: c.phone || '', email: c.email || '', cuit: c.cuit || '' })
+    setClientForm({ name: c.name, phone: c.phone || '', email: c.email || '', cuit: c.cuit || '', condIva: c.condIva || '', address: c.address || '' })
     setShowNewClient(true)
   }
 
@@ -361,7 +360,7 @@ export default function DashboardPage() {
 
     if (editingClient) {
       // ── EDITAR cliente existente ──
-      const actualizado: Client = { ...editingClient, ...clientForm }
+      const actualizado: Client = { ...editingClient, name: clientForm.name, phone: clientForm.phone, email: clientForm.email, cuit: clientForm.cuit, condIva: clientForm.condIva, address: clientForm.address, repairs: editingClient.repairs, lastRepair: editingClient.lastRepair }
       try {
         if (dbOn && editingClient.id) {
           await apiJSON('PUT', '/api/clients', { id: editingClient.id, ...clientForm })
@@ -385,7 +384,7 @@ export default function DashboardPage() {
       }
     }
 
-    setClientForm({ name: '', phone: '', email: '', cuit: '' })
+    setClientForm({ name: '', phone: '', email: '', cuit: '', condIva: '', address: '' })
     setEditingClient(null)
     setShowNewClient(false)
     setTab('clientes')
@@ -696,6 +695,8 @@ export default function DashboardPage() {
                     <p className="text-gray-400 text-sm mt-0.5">{c.phone}</p>
                     {c.email && <p className="text-gray-500 text-xs mt-0.5 truncate">{c.email}</p>}
                     {c.cuit && <p className="text-cyan-400 text-xs mt-1 font-mono">CUIT: {c.cuit}</p>}
+                    {c.condIva && <p className="text-gray-400 text-xs mt-0.5">{c.condIva}</p>}
+                    {c.address && <p className="text-gray-500 text-xs mt-0.5 truncate">📍 {c.address}</p>}
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700 text-xs text-gray-400">
                       <span>{c.repairs} reparación{c.repairs !== 1 ? 'es' : ''}</span>
                       <span>Última: {c.lastRepair}</span>
@@ -946,6 +947,19 @@ export default function DashboardPage() {
             <Field label="CUIT (para facturación)">
               <input value={clientForm.cuit} onChange={e => setClientForm(f => ({ ...f, cuit: e.target.value }))}
                 placeholder="20123456789 (solo números)" className={inputCls} />
+            </Field>
+            <Field label="Condición de IVA">
+              <select value={clientForm.condIva} onChange={e => setClientForm(f => ({ ...f, condIva: e.target.value }))} className={selectCls}>
+                <option value="">— Seleccionar —</option>
+                <option value="Consumidor Final">Consumidor Final</option>
+                <option value="Monotributista">Monotributista</option>
+                <option value="Responsable Inscripto">Responsable Inscripto</option>
+                <option value="Exento">Exento</option>
+              </select>
+            </Field>
+            <Field label="Dirección">
+              <input value={clientForm.address} onChange={e => setClientForm(f => ({ ...f, address: e.target.value }))}
+                placeholder="Calle 123, Ciudad" className={inputCls} />
             </Field>
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => { setShowNewClient(false); setEditingClient(null) }}
