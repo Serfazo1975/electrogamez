@@ -1,3 +1,4 @@
+
 'use client';
 
 // ============================================================
@@ -57,6 +58,52 @@ export default function FacturacionPage() {
   const [docTipo, setDocTipo] = useState(99);
   const [docNro, setDocNro] = useState('');
   const [nombreCliente, setNombreCliente] = useState('');
+  const [condIvaCliente, setCondIvaCliente] = useState('');
+  const [direccionCliente, setDireccionCliente] = useState('');
+  const [buscandoCuit, setBuscandoCuit] = useState(false);
+  const [clientesDb, setClientesDb] = useState<any[]>([]);
+  const [sugerencias, setSugerencias] = useState<any[]>([]);
+  const [showSugerencias, setShowSugerencias] = useState(false);
+
+  // Cargar clientes de la base al abrir la pantalla
+  useEffect(() => {
+    fetch('/api/clients').then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setClientesDb(data);
+    }).catch(() => {});
+  }, []);
+
+  // Seleccionar un cliente de las sugerencias
+  function seleccionarCliente(cl: any) {
+    setNombreCliente(cl.name || '');
+    setCondIvaCliente(cl.condIva || '');
+    setDireccionCliente(cl.address || '');
+    if (cl.cuit) { setDocTipo(80); setDocNro(cl.cuit); }
+    setSugerencias([]);
+    setShowSugerencias(false);
+  }
+
+  // Buscar sugerencias mientras se escribe el nombre
+  function buscarPorNombre(texto: string) {
+    setNombreCliente(texto);
+    if (texto.length < 2) { setSugerencias([]); setShowSugerencias(false); return; }
+    const filtrado = clientesDb.filter((c: any) =>
+      c.name?.toLowerCase().includes(texto.toLowerCase())
+    ).slice(0, 5);
+    setSugerencias(filtrado);
+    setShowSugerencias(filtrado.length > 0);
+  }
+
+  // Buscar cliente por CUIT en la base de datos
+  async function buscarPorCuit(cuit: string) {
+    const limpio = cuit.replace(/[^0-9]/g, '');
+    if (limpio.length < 7) return;
+    setBuscandoCuit(true);
+    const encontrado = clientesDb.find((c: any) => c.cuit === limpio);
+    if (encontrado) {
+      seleccionarCliente(encontrado);
+    }
+    setBuscandoCuit(false);
+  }
   const [concepto, setConcepto] = useState(1);
   const [servDesde, setServDesde] = useState('');
   const [servHasta, setServHasta] = useState('');
@@ -148,9 +195,9 @@ export default function FacturacionPage() {
       });
       const data = await res.json();
       if (data.ok) {
-        setResultado({ ...data, itemsEmitidos: itemsValidos, clienteNombre: nombreCliente || 'Consumidor Final' });
+        setResultado({ ...data, itemsEmitidos: itemsValidos, clienteNombre: nombreCliente || 'Consumidor Final', condIvaCliente: condIvaCliente || 'Consumidor Final', direccionCliente });
         setItems([{ descripcion: '', cantidad: 1, precioUnitario: 0 }]);
-        setDocNro(''); setNombreCliente('');
+        setDocNro(''); setNombreCliente(''); setCondIvaCliente(''); setDireccionCliente('');
         cargarFacturas();
       } else {
         setError((data.error || 'ARCA rechazó el comprobante') + (data.observaciones ? ' — ' + data.observaciones : ''));
@@ -283,6 +330,7 @@ export default function FacturacionPage() {
       ${bloquePeriodo}
       <div class="cliente">
         <p><b>CUIT:</b> ${f.docTipo === 99 ? '0' : f.docNro} &nbsp;&nbsp; <b>Apellido y Nombre / Razón Social:</b> ${f.clienteNombre}</p>
+        <p><b>Condición de IVA:</b> ${f.condIvaCliente || 'Consumidor Final'} &nbsp;&nbsp; <b>Domicilio:</b> ${f.direccionCliente || '—'}</p>
         <p><b>Condición frente al IVA:</b> Consumidor Final</p>
         <p><b>Condición de venta:</b> Contado</p>
       </div>
@@ -364,11 +412,7 @@ export default function FacturacionPage() {
 
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 16 }}>
         <h3 style={{ fontWeight: 700, marginBottom: 12, color: '#1e293b' }}>👤 Cliente</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          <div>
-            <label style={lbl}>Nombre (opcional)</label>
-            <input style={inp} value={nombreCliente} onChange={(e) => setNombreCliente(e.target.value)} placeholder="Consumidor Final" />
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div>
             <label style={lbl}>Tipo de documento</label>
             <select style={inp} value={docTipo} onChange={(e) => setDocTipo(Number(e.target.value))}>
@@ -379,9 +423,53 @@ export default function FacturacionPage() {
             <label style={lbl}>N° de documento</label>
             <input style={{ ...inp, background: docTipo === 99 ? '#f1f5f9' : '#fff' }} value={docNro}
               onChange={(e) => setDocNro(e.target.value)} disabled={docTipo === 99}
-              placeholder={docTipo === 99 ? 'No requerido' : 'Ej: 30123456'} />
+              onBlur={() => { if (docTipo === 80 && docNro.trim()) buscarPorCuit(docNro) }}
+              placeholder={docTipo === 99 ? 'No requerido' : 'Ej: 20214293286'} />
+          </div>
+          <div style={{ position: 'relative' }}>
+            <label style={lbl}>Nombre / Razón Social</label>
+            <input style={inp} value={nombreCliente}
+              onChange={(e) => buscarPorNombre(e.target.value)}
+              onFocus={() => { if (sugerencias.length > 0) setShowSugerencias(true) }}
+              onBlur={() => setTimeout(() => setShowSugerencias(false), 200)}
+              placeholder={buscandoCuit ? 'Buscando...' : 'Escribí para buscar o dejá vacío'} />
+            {showSugerencias && sugerencias.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', maxHeight: 200, overflowY: 'auto' }}>
+                {sugerencias.map((s: any, i: number) => (
+                  <button key={s.id ?? i} type="button"
+                    onMouseDown={() => seleccionarCliente(s)}
+                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'transparent', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: 13, color: '#1e293b' }}>
+                    <span style={{ fontWeight: 600 }}>{s.name}</span>
+                    {s.cuit && <span style={{ color: '#0ea5e9', marginLeft: 8, fontSize: 12 }}>CUIT: {s.cuit}</span>}
+                    {s.phone && <span style={{ color: '#94a3b8', marginLeft: 8, fontSize: 11 }}>{s.phone}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <label style={lbl}>Condición de IVA del receptor</label>
+            <select style={inp} value={condIvaCliente} onChange={(e) => setCondIvaCliente(e.target.value)}>
+              <option value="">— No especificada —</option>
+              <option value="Consumidor Final">Consumidor Final</option>
+              <option value="Monotributista">Monotributista</option>
+              <option value="Responsable Inscripto">Responsable Inscripto</option>
+              <option value="Exento">Exento</option>
+            </select>
+          </div>
+          <div>
+            <label style={lbl}>Dirección</label>
+            <input style={inp} value={direccionCliente} onChange={(e) => setDireccionCliente(e.target.value)} placeholder="Calle 123, Ciudad" />
+          </div>
+        </div>
+        {docTipo === 80 && docNro.length >= 7 && (
+          <button type="button" onClick={() => buscarPorCuit(docNro)}
+            style={{ marginTop: 10, background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            🔍 Buscar cliente por CUIT
+          </button>
+        )}
       </div>
 
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 16 }}>
