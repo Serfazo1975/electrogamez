@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -15,7 +16,7 @@ import Comprobante, { ReceiptData } from './Comprobante'
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 type Repair = { id?: string; code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null }
-type Client = { id?: string; name: string; phone: string; email: string; repairs: number; lastRepair: string }
+type Client = { id?: string; name: string; phone: string; email: string; cuit?: string; repairs: number; lastRepair: string }
 type Part   = { id?: string; name: string; sku: string; stock: number; minStock: number; salePrice: string }
 
 // ── Datos iniciales ───────────────────────────────────────────────────────────
@@ -257,8 +258,10 @@ export default function DashboardPage() {
   // Comprobante de recepción (se muestra al crear una reparación)
   const [receipt, setReceipt] = useState<ReceiptData | null>(null)
 
-  // Formulario nuevo cliente
-  const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '' })
+  // Formulario nuevo cliente (ahora incluye CUIT)
+  const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', cuit: '' })
+  // Cliente en edición (null = estamos creando uno nuevo)
+  const [editingClient, setEditingClient] = useState<Client | null>(null)
 
   // Formulario nuevo repuesto
   const [partForm, setPartForm] = useState({ name: '', sku: '', brand: '', stock: '', minStock: '2', salePrice: '' })
@@ -338,19 +341,52 @@ export default function DashboardPage() {
     })
   }
 
+  // Abrir el formulario para NUEVO cliente
+  function openNewClient() {
+    setEditingClient(null)
+    setClientForm({ name: '', phone: '', email: '', cuit: '' })
+    setShowNewClient(true)
+  }
+
+  // Abrir el formulario para EDITAR un cliente existente
+  function openEditClient(c: Client) {
+    setEditingClient(c)
+    setClientForm({ name: c.name, phone: c.phone || '', email: c.email || '', cuit: c.cuit || '' })
+    setShowNewClient(true)
+  }
+
   async function submitClient(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    const local: Client = { ...clientForm, repairs: 0, lastRepair: today() }
-    try {
-      const created = dbOn ? await apiJSON('POST', '/api/clients', clientForm) : local
-      setClients(prev => [created, ...prev])
-    } catch {
-      setClients(prev => [local, ...prev])
-    } finally {
-      setSaving(false)
+
+    if (editingClient) {
+      // ── EDITAR cliente existente ──
+      const actualizado: Client = { ...editingClient, ...clientForm }
+      try {
+        if (dbOn && editingClient.id) {
+          await apiJSON('PUT', '/api/clients', { id: editingClient.id, ...clientForm })
+        }
+        setClients(prev => prev.map(c => (c.id === editingClient.id ? actualizado : c)))
+      } catch {
+        setClients(prev => prev.map(c => (c.id === editingClient.id ? actualizado : c)))
+      } finally {
+        setSaving(false)
+      }
+    } else {
+      // ── CREAR cliente nuevo ──
+      const local: Client = { ...clientForm, repairs: 0, lastRepair: today() }
+      try {
+        const created = dbOn ? await apiJSON('POST', '/api/clients', clientForm) : local
+        setClients(prev => [created, ...prev])
+      } catch {
+        setClients(prev => [local, ...prev])
+      } finally {
+        setSaving(false)
+      }
     }
-    setClientForm({ name: '', phone: '', email: '' })
+
+    setClientForm({ name: '', phone: '', email: '', cuit: '' })
+    setEditingClient(null)
     setShowNewClient(false)
     setTab('clientes')
   }
@@ -485,7 +521,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                   { label: 'Nueva reparación', icon: <Wrench className="w-5 h-5" />, action: () => setShowNewRepair(true) },
-                  { label: 'Nuevo cliente',    icon: <Users className="w-5 h-5" />,  action: () => setShowNewClient(true) },
+                  { label: 'Nuevo cliente',    icon: <Users className="w-5 h-5" />,  action: () => openNewClient() },
                   { label: 'Agregar repuesto', icon: <Package className="w-5 h-5" />, action: () => setShowNewPart(true) },
                   { label: 'Agregar app',      icon: <Download className="w-5 h-5" />, action: () => { setTab('descargas'); setEditingApp(null); setAppForm(emptyApp); setShowAppForm(true) } },
                 ].map(a => (
@@ -640,7 +676,7 @@ export default function DashboardPage() {
                   <input type="text" placeholder="Buscar clientes..."
                     className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
-                <button onClick={() => setShowNewClient(true)}
+                <button onClick={() => openNewClient()}
                   className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
                   <Plus className="w-4 h-4" /> Nuevo cliente
                 </button>
@@ -651,11 +687,15 @@ export default function DashboardPage() {
                   <div key={c.id ?? c.phone ?? c.name} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5 hover:border-gray-600 transition-colors">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-10 h-10 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-semibold">{c.name[0]}</div>
-                      <button className="text-gray-500 hover:text-gray-300 transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                      <button onClick={() => openEditClient(c)} title="Editar cliente"
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-700 transition-colors">
+                        <Edit3 className="w-4 h-4" />
+                      </button>
                     </div>
                     <h3 className="font-semibold">{c.name}</h3>
                     <p className="text-gray-400 text-sm mt-0.5">{c.phone}</p>
                     {c.email && <p className="text-gray-500 text-xs mt-0.5 truncate">{c.email}</p>}
+                    {c.cuit && <p className="text-cyan-400 text-xs mt-1 font-mono">CUIT: {c.cuit}</p>}
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700 text-xs text-gray-400">
                       <span>{c.repairs} reparación{c.repairs !== 1 ? 'es' : ''}</span>
                       <span>Última: {c.lastRepair}</span>
@@ -887,9 +927,9 @@ export default function DashboardPage() {
         </Modal>
       )}
 
-      {/* ── MODAL NUEVO CLIENTE ── */}
+      {/* ── MODAL CLIENTE (nuevo o edición) ── */}
       {showNewClient && (
-        <Modal title="Nuevo cliente" onClose={() => setShowNewClient(false)}>
+        <Modal title={editingClient ? 'Editar cliente' : 'Nuevo cliente'} onClose={() => { setShowNewClient(false); setEditingClient(null) }}>
           <form onSubmit={submitClient} className="space-y-4">
             <Field label="Nombre completo *">
               <input required value={clientForm.name} onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
@@ -903,12 +943,16 @@ export default function DashboardPage() {
               <input type="email" value={clientForm.email} onChange={e => setClientForm(f => ({ ...f, email: e.target.value }))}
                 placeholder="juan@email.com" className={inputCls} />
             </Field>
+            <Field label="CUIT (para facturación)">
+              <input value={clientForm.cuit} onChange={e => setClientForm(f => ({ ...f, cuit: e.target.value }))}
+                placeholder="20123456789 (solo números)" className={inputCls} />
+            </Field>
             <div className="flex gap-3 pt-2">
-              <button type="button" onClick={() => setShowNewClient(false)}
+              <button type="button" onClick={() => { setShowNewClient(false); setEditingClient(null) }}
                 className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
               <button type="submit" disabled={saving}
                 className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:opacity-50 py-2.5 rounded-xl text-sm font-semibold transition-all">
-                {saving ? 'Guardando...' : 'Crear cliente'}
+                {saving ? 'Guardando...' : (editingClient ? 'Guardar cambios' : 'Crear cliente')}
               </button>
             </div>
           </form>
@@ -1008,7 +1052,7 @@ export default function DashboardPage() {
                 ['Ingresos Brutos', '1-28775'],
                 ['Inicio actividades', '01/04/2017'],
                 ['Domicilio', 'Los Pozos 458 Dpto:8, Río Gallegos'],
-                ['Punto de Venta', '00002'],
+                ['Punto de Venta', '00003'],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">{k}</span>
