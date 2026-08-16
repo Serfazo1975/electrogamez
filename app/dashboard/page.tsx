@@ -467,6 +467,10 @@ export default function DashboardPage() {
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-orange-400 hover:text-white hover:bg-orange-600 transition-colors">
             <span className="text-lg">📄</span> Presupuesto
           </a>
+          <a href="/tienda?admin=1"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-cyan-400 hover:text-white hover:bg-cyan-600 transition-colors">
+            <span className="text-lg">🛒</span> Administrar Tienda
+          </a>
           <button onClick={() => setShowConfig(true)}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
             <Settings className="w-5 h-5" /> Configuración
