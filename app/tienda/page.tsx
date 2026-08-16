@@ -9,7 +9,7 @@ import {
 
 // ─── DATOS DEL NEGOCIO (editá acá si cambian) ────────────────────────────────
 const ALIAS = 'ELECTROGAMEZ'
-const WHATSAPP = '5491156975880' // 54 9 11 5697 5880
+const WHATSAPP = '5491156975880' // 11 5697-5880
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 interface Producto {
@@ -70,6 +70,19 @@ export default function TiendaPage() {
   }, [])
 
   useEffect(() => { loadProductos() }, [loadProductos])
+
+  // Acceso al panel sin link público: entrar con /tienda?admin=1
+  // Si ya hay sesión de admin (cookie del dashboard), entra directo sin pedir contraseña.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin') === '1') {
+      setAdminMode(true)
+      fetch('/api/productos', { method: 'HEAD' }).catch(() => {})
+      // Verifica sesión existente intentando una acción admin liviana
+      fetch('/api/auth/check', { cache: 'no-store' })
+        .then(r => { if (r.ok) setAdminAuth(true) })
+        .catch(() => {})
+    }
+  }, [])
 
   const cats = useMemo(() => ['Todos', ...Array.from(new Set(productos.map(p => p.categoria).filter(Boolean)))], [productos])
   const filtered = useMemo(() => {
@@ -328,7 +341,8 @@ export default function TiendaPage() {
       <footer className="border-t border-gray-800/60 py-8 text-center text-gray-500 text-sm">
         <p className="font-semibold text-gray-400">ElectroGamez Servicio Técnico RG</p>
         <p className="mt-1">Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz</p>
-        <button onClick={() => setAdminMode(true)} className="mt-3 text-xs text-gray-600 hover:text-cyan-400 transition">· Panel de administración ·</button>
+        <a href="/legales" className="inline-block mt-3 text-xs text-gray-500 hover:text-cyan-400 transition">Información legal · Botón de arrepentimiento · Términos y condiciones</a>
+        {/* Acceso admin sin exponer link público: /tienda?admin=1 */}
       </footer>
 
       {cartOpen && <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => setCartOpen(false)} />}
