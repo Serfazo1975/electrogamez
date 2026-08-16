@@ -82,7 +82,7 @@ const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
   { label: 'Tienda', href: '/tienda' },
   { label: 'Empresas', href: '#empresas' },
-  { label: 'Descargas', href: '#Descargas' },
+  { label: 'Novedades', href: '#Novedades' },
   { label: 'Proyectos', href: '#proyectos' },
   { label: 'Testimonios', href: '#testimonios' },
   { label: 'Contacto', href: '#contacto' },
