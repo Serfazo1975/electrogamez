@@ -82,7 +82,7 @@ const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
   { label: 'Tienda', href: '/tienda' },
   { label: 'Empresas', href: '#empresas' },
-  { label: 'Novedades', href: '#novedades' },
+  { label: 'Descargas', href: '#Descargas' },
   { label: 'Proyectos', href: '#proyectos' },
   { label: 'Testimonios', href: '#testimonios' },
   { label: 'Contacto', href: '#contacto' },
@@ -134,7 +134,7 @@ const SERVICES = [
 
 const STATS = [
   { value: '+500', label: 'Equipos reparados' },
-  { value: '10+', label: 'Años de experiencia' },
+  { value: '15+', label: 'Años de experiencia' },
   { value: '98%', label: 'Clientes satisfechos' },
   { value: '24h', label: 'Diagnóstico express' },
 ]
@@ -524,7 +524,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-bold mb-4">¿Por qué elegirnos?</h2>
-            <p className="text-gray-400 text-lg">Más de 15 años reparando equipos en Rio Gallegos y Punta Arenas</p>
+            <p className="text-gray-400 text-lg">Más de 15 años reparando equipos en Río Gallegos, Santa Cruz</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -1010,7 +1010,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider">WhatsApp</p>
-                    <p className="font-semibold group-hover:text-green-400 transition-colors">11-5697-5880</p>
+                    <p className="font-semibold group-hover:text-green-400 transition-colors">11 5697-5880</p>
                   </div>
                 </a>
 
@@ -1036,7 +1036,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider">Dirección · Google Maps</p>
-                    <p className="font-semibold group-hover:text-red-400 transition-colors">Los Pozos 458, Rio Gallegos</p>
+                    <p className="font-semibold group-hover:text-red-400 transition-colors">Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz</p>
                     <p className="text-xs text-gray-500 group-hover:text-red-300 transition-colors flex items-center gap-1 mt-0.5">
                       Ver en el mapa <ArrowUpRight className="w-3 h-3" />
                     </p>
@@ -1189,20 +1189,27 @@ export default function Home() {
             </div>
 
             <p className="text-gray-600 text-sm text-center">
-              © {new Date().getFullYear()} ElectroGamez · Los Pozos 458, Rio Gallegos
+              © {new Date().getFullYear()} ElectroGamez · Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz
             </p>
-
-            <a
-              href="/login"
-              title="Acceso administrador — Panel de gestión"
-              className="text-gray-700 hover:text-gray-400 transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-            </a>
           </div>
         </div>
       </footer>
 
+      {/* Botón de WhatsApp flotante */}
+      <a
+        href="https://wa.me/5491156975880?text=Hola%20ElectroGamez!%20Quiero%20hacer%20una%20consulta."
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chatear por WhatsApp"
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-[#25d366] hover:bg-[#1ebe5b] text-white font-semibold pl-4 pr-5 py-3 rounded-full shadow-lg shadow-black/30 transition-all hover:scale-105"
+      >
+        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white" aria-hidden="true">
+          <path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.7 1-.9 1.1-.2.2-.3.2-.6.1-1.6-.8-2.6-1.4-3.7-3.2-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.5c-.2 0-.5.1-.8.4-1 .9-1.2 2.1-.9 3.4.4 1.6 1.4 3 1.6 3.2.2.3 2.8 4.3 6.8 5.9 2.5 1 3.2.8 3.8.7.9-.1 1.7-.7 2-1.4.3-.7.3-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2z" />
+        </svg>
+        <span className="hidden sm:inline">WhatsApp</span>
+      </a>
+
     </div>
   )
 }
+
