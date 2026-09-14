@@ -88,9 +88,7 @@ const NAV_LINKS = [
   { label: 'Empresas', href: '#empresas' },
   { label: 'Novedades', href: '#novedades' },
   { label: 'Proyectos', href: '#proyectos' },
-  { label: 'Testimonios', href: '#testimonios' },
   { label: 'Contacto', href: '#contacto' },
-  { label: 'Portal', href: '/portal' },
 ]
 
 const SERVICES = [
@@ -284,22 +282,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
-            <a
-              href="/seguimiento"
-              className="flex items-center gap-2 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm transition-all"
-            >
-              <Search className="w-4 h-4" /> Seguir reparación
-            </a>
-            <a
-              href="https://wa.me/5491156975880"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" /> WhatsApp
-            </a>
-          </div>
+
 
           <button className="md:hidden text-gray-400 p-1" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -336,14 +319,7 @@ export default function Home() {
                 </a>
               )
             })}
-            <div className="border-t border-gray-800/60 pt-2 mt-2 space-y-1">
-              <a href="/seguimiento" className="flex items-center gap-2 py-2 px-2 rounded-lg text-blue-400 hover:bg-blue-900/20 text-sm transition-colors" onClick={() => setMenuOpen(false)}>
-                <Search className="w-4 h-4" /> Seguir mi reparación
-              </a>
-              <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 py-2 px-2 rounded-lg text-green-400 hover:bg-green-900/20 text-sm transition-colors">
-                <MessageCircle className="w-4 h-4" /> WhatsApp
-              </a>
-            </div>
+
           </div>
         )}
       </nav>
@@ -359,7 +335,7 @@ export default function Home() {
           <div className="min-w-0 space-y-6">
 
             {/* HERO con foto de fondo */}
-            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[340px] flex items-center">
+            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[280px] flex items-center">
               <div className="absolute inset-0">
                 <img src="/hero-sergio.jpg" alt="Sergio reparando una placa en el taller de ElectroGamez" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/70 to-gray-950/20" />
@@ -418,7 +394,7 @@ export default function Home() {
             <div id="servicios" className="pt-4">
               <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-2">Lo que hacemos</p>
               <h2 className="text-3xl font-bold mb-6">Servicios de reparación</h2>
-              <div className="grid sm:grid-cols-2 gap-5">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
 {SERVICES.map((s) => (
               <div key={s.title} className="neon-card group relative bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 flex flex-col">
                 {/* Imagen 3D del servicio */}
@@ -431,8 +407,8 @@ export default function Home() {
                   <h3 className="absolute bottom-3 left-4 right-4 font-bold text-lg group-hover:text-cyan-400 transition-colors">{s.title}</h3>
                 </div>
                 {/* Contenido */}
-                <div className="p-5 flex flex-col flex-1">
-                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">{s.desc}</p>
+                <div className="p-4 flex flex-col flex-1">
+                  <p className="text-gray-400 text-xs mb-3 leading-relaxed line-clamp-3">{s.desc}</p>
                   <ul className="space-y-2 mt-auto">
                     {s.items.map((item) => (
                       <li key={item} className="flex items-center gap-2 text-sm text-gray-300">
@@ -502,7 +478,7 @@ export default function Home() {
           </p>
 
           <div className="grid lg:grid-cols-2 gap-5">
-            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[320px] group">
+            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[220px] group">
               <img src="/taller.jpg" alt="Sergio en el taller con microscopio de electrónica" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
               <div className="absolute bottom-5 left-5 right-5">
@@ -511,7 +487,7 @@ export default function Home() {
                 <p className="text-sm text-gray-400 mt-1">Trabajo a nivel chip bajo microscopio — lo que pocos hacen en la Patagonia.</p>
               </div>
             </div>
-            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[320px] group">
+            <div className="neon-card relative rounded-2xl overflow-hidden border border-gray-800 min-h-[220px] group">
               <img src="/sergio-server.jpg" alt="Sergio trabajando con servidores IBM" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
               <div className="absolute bottom-5 left-5 right-5">
