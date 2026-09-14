@@ -12,6 +12,10 @@ import {
   Server, Wifi, BatteryCharging, Printer, Building2,
   ShoppingCart
 } from 'lucide-react'
+import BarraSuperior from '@/components/BarraSuperior'
+import PreciosOrientativos from '@/components/PreciosOrientativos'
+import ResenasGoogle from '@/components/ResenasGoogle'
+import MapaContacto from '@/components/MapaContacto'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -253,7 +257,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-
+        <BarraSuperior />
       {/* ── NAVBAR ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-950/90 backdrop-blur-sm border-b border-gray-800/60">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -490,6 +494,7 @@ export default function Home() {
       {/* ── AUTORIDAD ── */}
       <section className="px-4 py-16 relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
+                  <PreciosOrientativos />
           <p className="text-cyan-400 text-sm font-medium uppercase tracking-widest mb-3">Autoridad real</p>
           <h2 className="text-3xl md:text-4xl font-bold mb-3">Detrás de cada reparación, un profesional certificado.</h2>
           <p className="text-gray-400 max-w-2xl mb-10">
@@ -961,6 +966,7 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIOS ── */}
+              <ResenasGoogle />
       <section id="testimonios" className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
@@ -1036,7 +1042,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider">Dirección · Google Maps</p>
-                    <p className="font-semibold group-hover:text-red-400 transition-colors">Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz</p>
+                    <p className="font-semibold group-hover:text-red-400 transition-colors">Los Pozos 458 Dpto ,Rio Gallegos, Santa Cruz</p>
                     <p className="text-xs text-gray-500 group-hover:text-red-300 transition-colors flex items-center gap-1 mt-0.5">
                       Ver en el mapa <ArrowUpRight className="w-3 h-3" />
                     </p>
@@ -1080,7 +1086,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
+                <MapaContacto />
             <div>
               {formSent ? (
                 <div className="h-full flex flex-col items-center justify-center bg-green-900/10 border border-green-700/50 rounded-2xl p-10 text-center">
