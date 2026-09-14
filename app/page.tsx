@@ -141,26 +141,6 @@ const STATS = [
   { value: '24h', label: 'Diagnóstico express' },
 ]
 
-const TESTIMONIALS = [
-  {
-    name: 'Carlos M.',
-    device: 'PlayStation 5',
-    text: 'Me arreglaron la ficha HDMI de la PS5 en 48 horas. Excelente trabajo, precio justo y con garantía.',
-    stars: 5,
-  },
-  {
-    name: 'Valentina R.',
-    device: 'Laptop HP',
-    text: 'Llevé mi laptop que se apagaba sola. La limpiaron, le cambiaron la pasta térmica y quedó como nueva.',
-    stars: 5,
-  },
-  {
-    name: 'Rodrigo P.',
-    device: 'PC de escritorio',
-    text: 'Muy profesionales. Me explicaron todo el proceso y el precio fue exactamente lo que me cotizaron.',
-    stars: 5,
-  },
-]
 
 const ESTADO_BADGE: Record<string, { label: string; color: string }> = {
   activo: { label: 'En producción', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
@@ -943,36 +923,7 @@ export default function Home() {
 
       {/* ── TESTIMONIOS ── */}
               <ResenasGoogle />
-      <section id="testimonios" className="py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-blue-400 text-sm font-medium uppercase tracking-widest mb-3">Testimonios</p>
-            <h2 className="text-4xl font-bold mb-4">Lo que dicen nuestros clientes</h2>
-          </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="bg-gray-800/40 border border-gray-700/60 rounded-2xl p-6">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-300 text-sm leading-relaxed mb-5">"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-semibold text-sm">
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">{t.name}</p>
-                    <p className="text-gray-500 text-xs">{t.device}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── CONTACTO ── */}
       <section id="contacto" className="py-24 px-4 bg-gray-900/40">
@@ -986,6 +937,16 @@ export default function Home() {
               </p>
 
               <div className="space-y-5">
+                <a href="tel:+542966383251" className="flex items-center gap-4 group">
+                  <div className="p-3 bg-cyan-600/20 rounded-xl text-cyan-400 group-hover:bg-cyan-600/30 transition-colors">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">Teléfono Río Gallegos</p>
+                    <p className="font-semibold group-hover:text-cyan-400 transition-colors">2966-383251</p>
+                  </div>
+                </a>
+
                 <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
                   <div className="p-3 bg-green-600/20 rounded-xl text-green-400 group-hover:bg-green-600/30 transition-colors">
                     <MessageCircle className="w-5 h-5" />
@@ -1030,9 +991,9 @@ export default function Home() {
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Horario</p>
-                    <p className="font-semibold">Lunes a Viernes: 10:00 – 19:00</p>
-                    <p className="text-gray-400 text-sm">Sábados: 10:00 – 14:00</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">Atención</p>
+                    <p className="font-semibold">Con coordinación telefónica</p>
+                    <p className="text-gray-400 text-sm">Domicilio y taller · Llamá o escribí</p>
                   </div>
                 </div>
 
@@ -1194,4 +1155,3 @@ export default function Home() {
     </div>
   )
 }
-
