@@ -1,27 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
-
 export default function BarraSuperior() {
-  const [visible, setVisible] = useState(true);
-  const [lastScroll, setLastScroll] = useState(0);
-
-  useEffect(() => {
-    function handleScroll() {
-      const current = window.scrollY;
-      if (current > lastScroll && current > 60) setVisible(false);
-      else setVisible(true);
-      setLastScroll(current);
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScroll]);
-
   return (
     <div style={{
-      position: 'fixed', top: visible ? 0 : -50, left: 0, right: 0, zIndex: 9999,
+      width: '100%',
       background: 'linear-gradient(90deg, #0f172a 0%, #1e293b 100%)',
       borderBottom: '1px solid rgba(56, 189, 248, 0.2)',
-      transition: 'top 0.3s ease',
     }}>
       <div style={{
         maxWidth: 1280, margin: '0 auto', padding: '8px 16px',
