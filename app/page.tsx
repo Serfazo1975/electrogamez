@@ -262,7 +262,37 @@ export default function Home() {
             ))}
           </div>
 
-
+          {/* Teléfonos neon en el nav */}
+          <div className="hidden md:flex items-center gap-3">
+            <style>{`
+              @keyframes navNeon {
+                0%   { color: #38bdf8; text-shadow: 0 0 6px #38bdf8, 0 0 14px #38bdf8; }
+                33%  { color: #a78bfa; text-shadow: 0 0 6px #a78bfa, 0 0 14px #a78bfa; }
+                66%  { color: #34d399; text-shadow: 0 0 6px #34d399, 0 0 14px #34d399; }
+                100% { color: #38bdf8; text-shadow: 0 0 6px #38bdf8, 0 0 14px #38bdf8; }
+              }
+              @keyframes navBlink {
+                0%, 19%, 21%, 23%, 100% { opacity: 1; }
+                20%, 22% { opacity: 0.7; }
+              }
+              .nav-neon {
+                animation: navNeon 3s linear infinite, navBlink 7s step-end infinite;
+                font-family: 'Courier New', monospace;
+                font-weight: 900;
+                font-size: 13px;
+                letter-spacing: 1.5px;
+              }
+            `}</style>
+            <a href="tel:+542966383251" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', lineHeight: 1.2 }}>
+              <span style={{ color: '#475569', fontSize: 9, letterSpacing: 1, textTransform: 'uppercase' as const }}>📞 Río Gallegos</span>
+              <span className="nav-neon">2966-383251</span>
+            </a>
+            <div style={{ width: 1, height: 28, background: 'rgba(148,163,184,0.15)' }} />
+            <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', lineHeight: 1.2 }}>
+              <span style={{ color: '#475569', fontSize: 9, letterSpacing: 1, textTransform: 'uppercase' as const }}>💬 WhatsApp</span>
+              <span className="nav-neon" style={{ animationDelay: '1.5s' }}>11 5697-5880</span>
+            </a>
+          </div>
 
           <button className="md:hidden text-gray-400 p-1" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -445,19 +475,19 @@ export default function Home() {
                   animation: neonColor 4s linear infinite, neonBlink 8s step-end infinite;
                   font-family: 'Courier New', monospace;
                   font-weight: 900;
-                  font-size: 22px;
-                  letter-spacing: 3px;
+                  font-size: 30px;
+                  letter-spacing: 5px;
                   display: block;
-                  margin: 4px 0;
+                  margin: 6px 0;
                 }
                 .neon-wa {
                   animation: neonColor 4s linear infinite 2s, neonBlink 6s step-end infinite 1s;
                   font-family: 'Courier New', monospace;
                   font-weight: 900;
-                  font-size: 19px;
-                  letter-spacing: 2px;
+                  font-size: 26px;
+                  letter-spacing: 4px;
                   display: block;
-                  margin: 4px 0;
+                  margin: 6px 0;
                 }
                 .neon-label {
                   color: #64748b;
@@ -468,7 +498,7 @@ export default function Home() {
                 }
               `}</style>
 
-              <p className="neon-label" style={{ marginBottom: 10 }}>Contacto directo</p>
+              <p className="neon-label" style={{ marginBottom: 14, fontSize: 11, letterSpacing: 3 }}>CONTACTO DIRECTO</p>
 
               <a href="tel:+542966383251" style={{ textDecoration: 'none', display: 'block', marginBottom: 12 }}>
                 <span className="neon-label">📞 Río Gallegos</span>
@@ -1208,7 +1238,7 @@ export default function Home() {
             </div>
 
             <p className="text-gray-600 text-sm text-center">
-              © {new Date().getFullYear()} ElectroGamez · Los Pozos 458, Río Gallegos, Santa Cruz
+              © {new Date().getFullYear()} ElectroGamez · Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz
             </p>
           </div>
         </div>
@@ -1231,3 +1261,4 @@ export default function Home() {
     </div>
   )
 }
+
