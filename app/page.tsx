@@ -279,6 +279,13 @@ export default function Home() {
                 animation: navNeon 3s linear infinite, navBlink 7s step-end infinite;
                 font-family: 'Courier New', monospace;
                 font-weight: 900;
+                font-size: 14px;
+                letter-spacing: 2px;
+              }
+              .nav-neon-2 {
+                animation: navNeon 3s linear infinite 1.5s, navBlink 7s step-end infinite 1s;
+                font-family: 'Courier New', monospace;
+                font-weight: 900;
                 font-size: 13px;
                 letter-spacing: 1.5px;
               }
@@ -290,7 +297,7 @@ export default function Home() {
             <div style={{ width: 1, height: 28, background: 'rgba(148,163,184,0.15)' }} />
             <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', lineHeight: 1.2 }}>
               <span style={{ color: '#475569', fontSize: 9, letterSpacing: 1, textTransform: 'uppercase' as const }}>💬 WhatsApp</span>
-              <span className="nav-neon" style={{ animationDelay: '1.5s' }}>11 5697-5880</span>
+              <span className="nav-neon-2">11 5697-5880</span>
             </a>
           </div>
 
@@ -438,80 +445,6 @@ export default function Home() {
           {/* ── SIDEBAR ── */}
           <aside className="space-y-5 lg:sticky lg:top-24">
 
-            {/* Teléfonos estilo Neon */}
-            <div style={{
-              background: 'rgba(2, 6, 23, 0.95)',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              borderRadius: 16,
-              padding: '18px 16px',
-              textAlign: 'center' as const,
-              position: 'relative' as const,
-              overflow: 'hidden',
-            }}>
-              {/* Fondo brillante animado */}
-              <div style={{
-                position: 'absolute', inset: 0, opacity: 0.07,
-                background: 'radial-gradient(ellipse at center, #38bdf8 0%, transparent 70%)',
-                animation: 'neonPulse 3s ease-in-out infinite',
-              }} />
-
-              <style>{`
-                @keyframes neonPulse {
-                  0%, 100% { opacity: 0.07; }
-                  50% { opacity: 0.18; }
-                }
-                @keyframes neonColor {
-                  0%   { color: #38bdf8; text-shadow: 0 0 8px #38bdf8, 0 0 20px #38bdf8, 0 0 40px #38bdf8; }
-                  25%  { color: #a78bfa; text-shadow: 0 0 8px #a78bfa, 0 0 20px #a78bfa, 0 0 40px #a78bfa; }
-                  50%  { color: #34d399; text-shadow: 0 0 8px #34d399, 0 0 20px #34d399, 0 0 40px #34d399; }
-                  75%  { color: #fb923c; text-shadow: 0 0 8px #fb923c, 0 0 20px #fb923c, 0 0 40px #fb923c; }
-                  100% { color: #38bdf8; text-shadow: 0 0 8px #38bdf8, 0 0 20px #38bdf8, 0 0 40px #38bdf8; }
-                }
-                @keyframes neonBlink {
-                  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
-                  20%, 24%, 55% { opacity: 0.85; }
-                }
-                .neon-phone {
-                  animation: neonColor 4s linear infinite, neonBlink 8s step-end infinite;
-                  font-family: 'Courier New', monospace;
-                  font-weight: 900;
-                  font-size: 30px;
-                  letter-spacing: 5px;
-                  display: block;
-                  margin: 6px 0;
-                }
-                .neon-wa {
-                  animation: neonColor 4s linear infinite 2s, neonBlink 6s step-end infinite 1s;
-                  font-family: 'Courier New', monospace;
-                  font-weight: 900;
-                  font-size: 26px;
-                  letter-spacing: 4px;
-                  display: block;
-                  margin: 6px 0;
-                }
-                .neon-label {
-                  color: #64748b;
-                  font-size: 10px;
-                  text-transform: uppercase;
-                  letter-spacing: 2px;
-                  font-family: system-ui, sans-serif;
-                }
-              `}</style>
-
-              <p className="neon-label" style={{ marginBottom: 14, fontSize: 11, letterSpacing: 3 }}>CONTACTO DIRECTO</p>
-
-              <a href="tel:+542966383251" style={{ textDecoration: 'none', display: 'block', marginBottom: 12 }}>
-                <span className="neon-label">📞 Río Gallegos</span>
-                <span className="neon-phone">2966-383251</span>
-              </a>
-
-              <div style={{ height: 1, background: 'rgba(56,189,248,0.15)', margin: '10px 0' }} />
-
-              <a href="https://wa.me/5491156975880" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginTop: 12 }}>
-                <span className="neon-label">💬 WhatsApp</span>
-                <span className="neon-wa">11 5697-5880</span>
-              </a>
-            </div>
 
             {/* Tienda */}
             <a href="/tienda" className="neon-card group block bg-gradient-to-br from-blue-950/60 to-cyan-950/40 border border-cyan-800/40 rounded-2xl p-5 hover:-translate-y-1 transition-all">
@@ -1238,7 +1171,7 @@ export default function Home() {
             </div>
 
             <p className="text-gray-600 text-sm text-center">
-              © {new Date().getFullYear()} ElectroGamez · Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz
+              © {new Date().getFullYear()} ElectroGamez · Los Pozos 458, Río Gallegos, Santa Cruz
             </p>
           </div>
         </div>
@@ -1261,4 +1194,3 @@ export default function Home() {
     </div>
   )
 }
-
