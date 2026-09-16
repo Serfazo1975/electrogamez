@@ -86,7 +86,7 @@ const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
   { label: 'Tienda', href: '/tienda' },
   { label: 'Empresas', href: '#empresas' },
-  { label: 'Novedades', href: '#novedades' },
+  { label: 'Descargas', href: '#novedades' },
   { label: 'Proyectos', href: '#proyectos' },
   { label: 'Contacto', href: '#contacto' },
 ]
@@ -1018,7 +1018,7 @@ export default function Home() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider">Dirección · Google Maps</p>
-                    <p className="font-semibold group-hover:text-red-400 transition-colors">Los Pozos 458 Dpto ,Rio Gallegos, Santa Cruz</p>
+                    <p className="font-semibold group-hover:text-red-400 transition-colors">Los Pozos 458,Rio Gallegos, Santa Cruz</p>
                     <p className="text-xs text-gray-500 group-hover:text-red-300 transition-colors flex items-center gap-1 mt-0.5">
                       Ver en el mapa <ArrowUpRight className="w-3 h-3" />
                     </p>
@@ -1194,3 +1194,4 @@ export default function Home() {
     </div>
   )
 }
+
