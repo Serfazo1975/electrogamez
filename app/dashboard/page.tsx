@@ -706,30 +706,31 @@ export default function DashboardPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wider">
-                        <th className="px-5 py-3 text-left">Código</th>
-                        <th className="px-5 py-3 text-left">Cliente</th>
-                        <th className="px-5 py-3 text-left hidden md:table-cell">Equipo</th>
-                        <th className="px-5 py-3 text-left hidden lg:table-cell">Problema</th>
-                        <th className="px-5 py-3 text-left">Estado</th>
-                        <th className="px-5 py-3 text-left">Pago</th>
-                        <th className="px-5 py-3 text-left hidden sm:table-cell">Prioridad</th>
-                        <th className="px-5 py-3 text-left hidden lg:table-cell">Costo</th>
-                        <th className="px-5 py-3 text-left hidden md:table-cell">Fecha</th>
-                        <th className="px-5 py-3" />
+                        <th className="px-3 py-3 text-left">Código / Fecha</th>
+                        <th className="px-3 py-3 text-left">Cliente</th>
+                        <th className="px-3 py-3 text-left">Equipo / Problema</th>
+                        <th className="px-3 py-3 text-left">Estado</th>
+                        <th className="px-3 py-3 text-left">Pago</th>
+                        <th className="px-3 py-3 text-left">Costo / Prioridad</th>
+                        <th className="px-3 py-3" />
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700/50">
                       {filteredRepairs.map(r => (
                         <tr key={r.code} className="hover:bg-gray-700/30 transition-colors">
-                          <td className="px-5 py-4 font-mono text-xs text-blue-400">{r.code}</td>
-                          <td className="px-5 py-4 font-medium">{r.client}</td>
-                          <td className="px-5 py-4 hidden md:table-cell">
-                            <div className="flex items-center gap-2 text-gray-300">
-                              <span className="text-gray-500">{DEVICE_ICON[r.type]}</span>{r.device}
-                            </div>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="font-mono text-xs text-blue-400">{r.code}</div>
+                            <div className="text-[11px] text-gray-500 mt-0.5">{r.date}</div>
                           </td>
-                          <td className="px-5 py-4 text-gray-400 hidden lg:table-cell max-w-xs truncate">{r.issue}</td>
-                          <td className="px-5 py-4 relative">
+                          <td className="px-3 py-3 font-medium max-w-[150px]">{r.client}</td>
+                          <td className="px-3 py-3 max-w-[240px]">
+                            <div className="flex items-center gap-2 text-gray-300">
+                              <span className="text-gray-500 flex-shrink-0">{DEVICE_ICON[r.type]}</span>
+                              <span className="truncate" title={r.device}>{r.device}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 truncate mt-0.5" title={r.issue}>{r.issue}</p>
+                          </td>
+                          <td className="px-3 py-3 relative">
                             <button
                               onClick={e => { e.stopPropagation(); setStatusDropdown(statusDropdown === r.code ? null : r.code) }}
                               className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap hover:opacity-80 transition-opacity ${STATUS_CONFIG[r.status]?.color}`}>
@@ -758,20 +759,19 @@ export default function DashboardPage() {
                               </div>
                             )}
                           </td>
-                          <td className="px-5 py-4 whitespace-nowrap">
+                          <td className="px-3 py-3 whitespace-nowrap">
                             <button onClick={() => changePayment(r, (r.payment ?? 'pending') === 'paid' ? 'pending' : 'paid')}
                               title={(r.payment ?? 'pending') === 'paid' ? 'Clic para volver a Pendiente de pago' : 'Clic para marcar como Pagado'}
                               className={`text-xs px-2.5 py-1 rounded-full font-medium hover:opacity-80 transition-opacity ${PAYMENT_CONFIG[r.payment ?? 'pending']?.color}`}>
                               {PAYMENT_CONFIG[r.payment ?? 'pending']?.label}
                             </button>
                           </td>
-                          <td className="px-5 py-4 hidden sm:table-cell">
-                            <span className={`text-xs font-medium ${PRIORITY_CONFIG[r.priority]?.color}`}>{PRIORITY_CONFIG[r.priority]?.label}</span>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="text-gray-200">{r.cost ?? <span className="text-gray-600">Por definir</span>}</div>
+                            <span className={`text-[11px] font-medium ${PRIORITY_CONFIG[r.priority]?.color}`}>{PRIORITY_CONFIG[r.priority]?.label}</span>
                           </td>
-                          <td className="px-5 py-4 text-gray-300 hidden lg:table-cell">{r.cost ?? <span className="text-gray-600">Por definir</span>}</td>
-                          <td className="px-5 py-4 text-gray-400 text-xs hidden md:table-cell">{r.date}</td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-1 justify-end">
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-0.5 justify-end">
                               <button onClick={() => openEditRepair(r)} title="Editar / corregir"
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-orange-400 hover:bg-orange-900/30 transition-colors">
                                 <Edit3 className="w-4 h-4" />
