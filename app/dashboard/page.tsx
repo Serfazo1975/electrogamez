@@ -14,7 +14,7 @@ import Comprobante, { ReceiptData } from './Comprobante'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type Repair = { id?: string; code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null }
+type Repair = { id?: string; code: string; client: string; device: string; type: string; issue: string; status: string; priority: string; date: string; cost: string | null; payment?: string; paidDate?: string | null }
 type Client = { id?: string; name: string; phone: string; email: string; cuit?: string; condIva?: string; address?: string; repairs: number; lastRepair: string }
 type Part   = { id?: string; name: string; sku: string; stock: number; minStock: number; salePrice: string }
 
@@ -60,6 +60,16 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   high:   { label: 'Alta',  color: 'text-red-400' },
   medium: { label: 'Media', color: 'text-yellow-400' },
   low:    { label: 'Baja',  color: 'text-green-400' },
+}
+
+const PAYMENT_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
+  pending: { label: 'Pendiente de pago', color: 'bg-red-900/50 text-red-300',     dot: 'bg-red-400' },
+  paid:    { label: 'Pagado',            color: 'bg-emerald-900/50 text-emerald-300', dot: 'bg-emerald-400' },
+}
+
+// Monto ("$25.000") → número, para sumar lo pendiente de cobro
+function moneyToNumber(v: string | null) {
+  return v ? parseInt(v.replace(/\D/g, '')) || 0 : 0
 }
 
 const DEVICE_ICON: Record<string, React.ReactNode> = {
@@ -223,6 +233,12 @@ export default function DashboardPage() {
   // Documento (presupuesto / factura C)
   const [doc, setDoc] = useState<DocData | null>(null)
 
+  // Filtro por estado de pago + edición de reparaciones
+  const [showFilter, setShowFilter] = useState(false)
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'paid'>('all')
+  const [editingRepair, setEditingRepair] = useState<Repair | null>(null)
+  const [editForm, setEditForm] = useState({ client: '', device: '', type: 'laptop', issue: '', priority: 'medium', cost: '', payment: 'pending' })
+
   // Cambio de estado inline
   const [statusDropdown, setStatusDropdown] = useState<string | null>(null)
 
@@ -277,7 +293,11 @@ export default function DashboardPage() {
     r.client.toLowerCase().includes(search.toLowerCase()) ||
     r.code.toLowerCase().includes(search.toLowerCase()) ||
     r.device.toLowerCase().includes(search.toLowerCase())
-  )
+  ).filter(r => paymentFilter === 'all' || (r.payment ?? 'pending') === paymentFilter)
+
+  // Pendiente de cobro (no cuenta las canceladas)
+  const unpaid = repairs.filter(r => (r.payment ?? 'pending') === 'pending' && r.status !== 'cancelled')
+  const unpaidTotal = unpaid.reduce((t, r) => t + moneyToNumber(r.cost), 0)
 
   async function submitRepair(e: React.FormEvent) {
     e.preventDefault()
@@ -422,6 +442,67 @@ export default function DashboardPage() {
     }
   }
 
+  // Cambiar estado de pago (Pendiente de pago / Pagado)
+  async function changePayment(repair: Repair, newPayment: 'pending' | 'paid') {
+    if ((repair.payment ?? 'pending') === newPayment) { setStatusDropdown(null); return }
+    const prev = repair.payment ?? 'pending'
+    const paidDate = newPayment === 'paid' ? today() : null
+    setRepairs(list => list.map(r => r.code === repair.code ? { ...r, payment: newPayment, paidDate } : r))
+    setStatusDropdown(null)
+    if (dbOn && repair.id) {
+      try {
+        await apiJSON('PUT', '/api/repairs/editar', { id: repair.id, payment: newPayment })
+      } catch {
+        setRepairs(list => list.map(r => r.code === repair.code ? { ...r, payment: prev, paidDate: repair.paidDate ?? null } : r))
+        alert('No se pudo guardar el estado de pago.')
+      }
+    }
+  }
+
+  // Abrir edición de una reparación existente
+  function openEditRepair(r: Repair) {
+    setEditingRepair(r)
+    setEditForm({
+      client: r.client,
+      device: r.device,
+      type: r.type || 'other',
+      issue: r.issue,
+      priority: r.priority,
+      cost: r.cost ? String(moneyToNumber(r.cost)) : '',
+      payment: r.payment ?? 'pending',
+    })
+  }
+
+  async function submitEditRepair(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingRepair) return
+    setSaving(true)
+    const target = editingRepair
+    const local: Repair = {
+      ...target,
+      client: editForm.client.trim() || target.client,
+      device: editForm.device.trim() || target.device,
+      type: editForm.type,
+      issue: editForm.issue.trim() || target.issue,
+      priority: editForm.priority,
+      cost: editForm.cost ? `$${editForm.cost}` : null,
+      payment: editForm.payment,
+      paidDate: editForm.payment === 'paid' ? (target.paidDate ?? today()) : null,
+    }
+    let result: Repair = local
+    try {
+      if (dbOn && target.id) {
+        result = await apiJSON('PUT', '/api/repairs/editar', { id: target.id, ...editForm })
+      }
+    } catch {
+      alert('No se pudieron guardar los cambios en la base. Se actualizó solo en pantalla.')
+    } finally {
+      setRepairs(list => list.map(r => r.code === target.code ? result : r))
+      setSaving(false)
+      setEditingRepair(null)
+    }
+  }
+
   // Cambiar stock (persiste en la base si está conectada)
   function changeStock(idx: number, delta: number) {
     const part = parts[idx]
@@ -524,6 +605,16 @@ export default function DashboardPage() {
                 ))}
               </div>
 
+              {/* Pendiente de cobro */}
+              <button onClick={() => { setTab('reparaciones'); setPaymentFilter('pending'); setShowFilter(true) }}
+                className="w-full text-left bg-red-900/20 border border-red-700/40 hover:border-red-500/60 rounded-2xl p-5 flex items-center justify-between transition-colors">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-red-300/80 font-semibold">Pendiente de pago</p>
+                  <p className="text-2xl font-bold text-red-300 mt-1">${unpaidTotal.toLocaleString('es-AR')}</p>
+                </div>
+                <span className="text-sm text-gray-300">{unpaid.length} reparación{unpaid.length === 1 ? '' : 'es'} sin cobrar →</span>
+              </button>
+
               {/* Acciones rápidas */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
@@ -588,7 +679,8 @@ export default function DashboardPage() {
                   <input type="text" placeholder="Buscar por cliente, código o equipo..." value={search} onChange={e => setSearch(e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
-                <button className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2.5 rounded-xl text-sm transition-colors">
+                <button onClick={() => setShowFilter(v => !v)}
+                  className={`flex items-center gap-2 hover:bg-gray-600 px-4 py-2.5 rounded-xl text-sm transition-colors ${paymentFilter !== 'all' ? 'bg-blue-600/40 text-blue-200' : 'bg-gray-700'}`}>
                   <Filter className="w-4 h-4" /> Filtrar
                 </button>
                 <button onClick={() => setShowNewRepair(true)}
@@ -596,6 +688,18 @@ export default function DashboardPage() {
                   <Plus className="w-4 h-4" /> Nueva reparación
                 </button>
               </div>
+
+              {(showFilter || paymentFilter !== 'all') && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-gray-500 uppercase tracking-wider">Pago:</span>
+                  {([['all', 'Todos'], ['pending', 'Pendiente de pago'], ['paid', 'Pagado']] as const).map(([key, label]) => (
+                    <button key={key} onClick={() => setPaymentFilter(key)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${paymentFilter === key ? 'bg-blue-600 border-blue-500 text-white' : 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="bg-gray-800/60 border border-gray-700 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
@@ -607,6 +711,7 @@ export default function DashboardPage() {
                         <th className="px-5 py-3 text-left hidden md:table-cell">Equipo</th>
                         <th className="px-5 py-3 text-left hidden lg:table-cell">Problema</th>
                         <th className="px-5 py-3 text-left">Estado</th>
+                        <th className="px-5 py-3 text-left">Pago</th>
                         <th className="px-5 py-3 text-left hidden sm:table-cell">Prioridad</th>
                         <th className="px-5 py-3 text-left hidden lg:table-cell">Costo</th>
                         <th className="px-5 py-3 text-left hidden md:table-cell">Fecha</th>
@@ -640,8 +745,25 @@ export default function DashboardPage() {
                                     {r.status === key && <span className="ml-auto text-blue-400">✓</span>}
                                   </button>
                                 ))}
+                                <div className="border-t border-gray-700 my-1" />
+                                <p className="px-3 pt-1 pb-0.5 text-[10px] uppercase tracking-wider text-gray-500">Pago</p>
+                                {Object.entries(PAYMENT_CONFIG).map(([key, cfg]) => (
+                                  <button key={key} onClick={() => changePayment(r, key as 'pending' | 'paid')}
+                                    className={`w-full flex items-center gap-2.5 text-left px-3 py-2 text-xs hover:bg-gray-700 transition-colors ${(r.payment ?? 'pending') === key ? 'text-white font-semibold' : 'text-gray-300'}`}>
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                                    {cfg.label}
+                                    {(r.payment ?? 'pending') === key && <span className="ml-auto text-blue-400">✓</span>}
+                                  </button>
+                                ))}
                               </div>
                             )}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <button onClick={() => changePayment(r, (r.payment ?? 'pending') === 'paid' ? 'pending' : 'paid')}
+                              title={(r.payment ?? 'pending') === 'paid' ? 'Clic para volver a Pendiente de pago' : 'Clic para marcar como Pagado'}
+                              className={`text-xs px-2.5 py-1 rounded-full font-medium hover:opacity-80 transition-opacity ${PAYMENT_CONFIG[r.payment ?? 'pending']?.color}`}>
+                              {PAYMENT_CONFIG[r.payment ?? 'pending']?.label}
+                            </button>
                           </td>
                           <td className="px-5 py-4 hidden sm:table-cell">
                             <span className={`text-xs font-medium ${PRIORITY_CONFIG[r.priority]?.color}`}>{PRIORITY_CONFIG[r.priority]?.label}</span>
@@ -650,6 +772,10 @@ export default function DashboardPage() {
                           <td className="px-5 py-4 text-gray-400 text-xs hidden md:table-cell">{r.date}</td>
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-1 justify-end">
+                              <button onClick={() => openEditRepair(r)} title="Editar / corregir"
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-orange-400 hover:bg-orange-900/30 transition-colors">
+                                <Edit3 className="w-4 h-4" />
+                              </button>
                               <button onClick={() => openReceipt(r)} title="Comprobante de recepción"
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/30 transition-colors">
                                 <ClipboardList className="w-4 h-4" />
@@ -930,6 +1056,60 @@ export default function DashboardPage() {
               <button type="submit" disabled={saving}
                 className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:opacity-50 py-2.5 rounded-xl text-sm font-semibold transition-all">
                 {saving ? 'Guardando...' : 'Crear reparación'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── MODAL EDITAR REPARACIÓN ── */}
+      {editingRepair && (
+        <Modal title={`Editar reparación ${editingRepair.code}`} onClose={() => setEditingRepair(null)}>
+          <form onSubmit={submitEditRepair} className="space-y-4">
+            <Field label="Cliente *">
+              <input required value={editForm.client} onChange={e => setEditForm(f => ({ ...f, client: e.target.value }))} className={inputCls} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Tipo de equipo">
+                <select value={editForm.type} onChange={e => setEditForm(f => ({ ...f, type: e.target.value }))} className={selectCls}>
+                  <option value="laptop">Laptop</option>
+                  <option value="pc">PC escritorio</option>
+                  <option value="playstation">PlayStation</option>
+                  <option value="other">Otro</option>
+                </select>
+              </Field>
+              <Field label="Prioridad">
+                <select value={editForm.priority} onChange={e => setEditForm(f => ({ ...f, priority: e.target.value }))} className={selectCls}>
+                  <option value="low">Baja</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                </select>
+              </Field>
+            </div>
+            <Field label="Equipo (marca y modelo)">
+              <input value={editForm.device} onChange={e => setEditForm(f => ({ ...f, device: e.target.value }))} className={inputCls} />
+            </Field>
+            <Field label="Problema / trabajo realizado *">
+              <textarea required rows={3} value={editForm.issue} onChange={e => setEditForm(f => ({ ...f, issue: e.target.value }))} className={inputCls + ' resize-none'} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Costo ($)">
+                <input type="number" value={editForm.cost} onChange={e => setEditForm(f => ({ ...f, cost: e.target.value }))} placeholder="25000" className={inputCls} />
+              </Field>
+              <Field label="Estado de pago">
+                <select value={editForm.payment} onChange={e => setEditForm(f => ({ ...f, payment: e.target.value }))} className={selectCls}>
+                  <option value="pending">Pendiente de pago</option>
+                  <option value="paid">Pagado</option>
+                </select>
+              </Field>
+            </div>
+            <p className="text-xs text-gray-500">El estado de la reparación (Completado, Entregado, etc.) se sigue cambiando desde la columna Estado.</p>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setEditingRepair(null)}
+                className="flex-1 border border-gray-700 hover:border-gray-500 py-2.5 rounded-xl text-sm transition-colors">Cancelar</button>
+              <button type="submit" disabled={saving}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 disabled:opacity-50 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                {saving ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </div>
           </form>
