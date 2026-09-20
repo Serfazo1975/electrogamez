@@ -1,36 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { dbReady, fmtMoney, fmtDate, parseMoney } from '@/lib/api-helpers'
+import { dbReady, parseMoney } from '@/lib/api-helpers'
+import { toDTO } from '@/lib/repair-dto'
+import { getPaymentMap } from '@/lib/repair-payments'
 
 export const dynamic = 'force-dynamic'
-
-type RepairWithClient = {
-  id: string
-  trackingCode: string
-  deviceType: string
-  deviceBrand: string | null
-  deviceModel: string | null
-  issueDescription: string
-  status: string
-  priority: string
-  estimatedCost: number | null
-  receivedAt: Date
-  client: { name: string } | null
-}
-
-function toDTO(r: RepairWithClient) {
-  return {
-    id: r.id,
-    code: r.trackingCode,
-    client: r.client?.name ?? '',
-    device: [r.deviceBrand, r.deviceModel].filter(Boolean).join(' ') || r.deviceType,
-    type: r.deviceType,
-    issue: r.issueDescription,
-    status: r.status,
-    priority: r.priority,
-    date: fmtDate(r.receivedAt),
-    cost: fmtMoney(r.estimatedCost),
-  }
-}
 
 export async function GET() {
   if (!dbReady()) return NextResponse.json({ error: 'no-db' }, { status: 503 })
@@ -40,7 +13,8 @@ export async function GET() {
       orderBy: { receivedAt: 'desc' },
       include: { client: { select: { name: true } } },
     })
-    return NextResponse.json(repairs.map(toDTO))
+    const pays = await getPaymentMap()
+    return NextResponse.json(repairs.map(r => toDTO(r, pays.get(r.id))))
   } catch {
     return NextResponse.json({ error: 'fail' }, { status: 500 })
   }
