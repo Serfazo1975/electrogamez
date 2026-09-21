@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session'
 
-export function middleware(request: NextRequest) {
-  const isAdmin = request.cookies.get('eg_admin')?.value === 'true'
+export async function middleware(request: NextRequest) {
+  const isAdmin = await verifyAdminToken(request.cookies.get(ADMIN_COOKIE)?.value)
 
   if (!isAdmin) {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -11,5 +12,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/facturas.html'],
 }
