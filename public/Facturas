@@ -241,7 +241,7 @@ function itemsDe(f){
   return d.map(it=>{
     const desc = it.descripcion ?? it.description ?? it.detalle ?? it.nombre ?? it.concepto ?? it.producto ?? '';
     const cant = Number(it.cantidad ?? it.qty ?? it.cant ?? 1) || 1;
-    let pu = it.precioUnitario ?? it.precio_unitario ?? it.precio ?? it.price ?? it.unitPrice ?? it.importe ?? null;
+    let pu = it.precioUnitario ?? it.precio_unitario ?? it.precioUnit ?? it.punitario ?? it.pUnitario ?? it.precio ?? it.price ?? it.unitPrice ?? it.unit_price ?? it.importe ?? null;
     pu = pu == null ? null : Number(pu);
     const sub = it.subtotal != null ? Number(it.subtotal) : (pu != null ? pu*cant : null);
     return {desc, cant, pu: pu != null ? pu : (sub != null ? sub/cant : null), sub};
@@ -317,7 +317,7 @@ async function dibujar(){
     '<div class="box">' +
       (esCF ? '<div><b>Apellido y Nombre / Razón Social:</b> ' + esc(nombre || 'Consumidor Final') + '</div>'
             : '<div><b>' + (DOC_TIPO[f.doc_tipo]||'Doc.') + ':</b> ' + esc(f.doc_nro) + ' &nbsp; <b>Apellido y Nombre / Razón Social:</b> ' + esc(nombre) + '</div>') +
-      '<div><b>Condición frente al IVA:</b> ' + esc(COND_IVA[f.cond_iva_receptor] || 'Consumidor Final') + ' &nbsp; <b>Condición de venta:</b> Contado</div>' +
+      '<div>' + ((esCF || Number(f.cond_iva_receptor) !== 5) ? '<b>Condición frente al IVA:</b> ' + esc(COND_IVA[f.cond_iva_receptor] || 'Consumidor Final') + ' &nbsp; ' : '') + '<b>Condición de venta:</b> Contado</div>' +
     '</div>' +
     '<table><thead><tr><th>Descripción</th><th style="width:70px">Cant.</th><th style="width:120px">Precio Unit.</th><th style="width:120px">Subtotal</th></tr></thead><tbody>' + filas + '</tbody></table>' +
     '<div class="tot">Importe Total: ' + money(f.imp_total) + '</div>' +
