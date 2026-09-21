@@ -169,7 +169,6 @@ export default function Home() {
   })
 
   const CATEGORIAS = ['Todos', 'Utilidades', 'Seguridad', 'Multimedia', 'Juegos', 'Drivers', 'Oficina', 'Sistema']
-  const ADMIN_PASS = 'electrogamez2025'
 
   useEffect(() => {
     // Las descargas se leen de la base de datos → iguales en todas las PC / visitantes
@@ -183,14 +182,23 @@ export default function Home() {
     setApps(newApps)
   }
 
-  function handleAdminLogin() {
-    if (adminPassword === ADMIN_PASS) {
-      setAdminMode(true)
-      localStorage.setItem('eg_admin', '1')  // recordar sesión en este equipo
-      setShowAdminLogin(false)
-      setAdminPassword('')
-    } else {
-      alert('Contraseña incorrecta')
+  async function handleAdminLogin() {
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPassword }),
+      })
+      if (r.ok) {
+        setAdminMode(true)
+        localStorage.setItem('eg_admin', '1')  // recordar sesión en este equipo
+        setShowAdminLogin(false)
+        setAdminPassword('')
+      } else {
+        alert('Contraseña incorrecta')
+      }
+    } catch {
+      alert('Error de conexión. Intentá nuevamente.')
     }
   }
 

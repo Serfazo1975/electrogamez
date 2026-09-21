@@ -8,7 +8,7 @@ const VENDEDOR = {
   titular: 'Fazzini Sergio Federico',
   condicion: 'Monotributista',
   cuit: '20-21429328-6',
-  domicilio: 'Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz, Argentina',
+  domicilio: 'Los Pozos 458, Río Gallegos, Santa Cruz, Argentina',
   email: 'sergiofazzini@gmail.com',
   whatsapp: '11 5697-5880',
 }

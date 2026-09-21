@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { PrismaClient } from '@prisma/client';
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +12,8 @@ g.__egPrismaFacturas = prisma;
 
 // SOLO LECTURA: devuelve las facturas guardadas en facturas_afip (con su detalle)
 export async function GET() {
-  const auth = cookies().get('eg_admin')?.value;
-  if (auth !== 'true') {
+  const ok = await verifyAdminToken(cookies().get(ADMIN_COOKIE)?.value);
+  if (!ok) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
   try {

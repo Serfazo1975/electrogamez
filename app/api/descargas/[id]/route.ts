@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { updateDescarga, deleteDescarga } from '@/lib/descargas'
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 
-function isAdmin(req: NextRequest) {
-  return req.cookies.get('eg_admin')?.value === 'true'
+async function isAdmin(req: NextRequest) {
+  return verifyAdminToken(req.cookies.get(ADMIN_COOKIE)?.value)
 }
 
 // Admin: editar una descarga
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  if (!(await isAdmin(req))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   const d = await req.json()
   try {
     await updateDescarga(params.id, d)
@@ -21,7 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 // Admin: eliminar una descarga
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  if (!(await isAdmin(req))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   try {
     await deleteDescarga(params.id)
     return NextResponse.json({ ok: true })

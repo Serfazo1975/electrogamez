@@ -8,17 +8,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { emitirFactura, listarFacturas, DatosFactura } from '@/lib/afip';
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 
 export const dynamic = 'force-dynamic';
 
 // ⚠️ Verificación de admin: coincide con el login real (cookie eg_admin = 'true')
-function esAdmin(): boolean {
-  const cookie = cookies().get('eg_admin');
-  return !!cookie && cookie.value === 'true';
+async function esAdmin(): Promise<boolean> {
+  return verifyAdminToken(cookies().get(ADMIN_COOKIE)?.value);
 }
 
 export async function POST(req: NextRequest) {
-  if (!esAdmin()) {
+  if (!(await esAdmin())) {
     return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 });
   }
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  if (!esAdmin()) {
+  if (!(await esAdmin())) {
     return NextResponse.json({ ok: false, error: 'No autorizado' }, { status: 401 });
   }
   try {

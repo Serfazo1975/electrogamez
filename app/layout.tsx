@@ -28,7 +28,7 @@ const jsonLd = {
   priceRange: '$$',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Los Pozos 458 Dpto:8',
+    streetAddress: 'Los Pozos 458',
     addressLocality: 'Río Gallegos',
     addressRegion: 'Santa Cruz',
     addressCountry: 'AR',

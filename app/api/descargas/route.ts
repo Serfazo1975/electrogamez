@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listDescargas, createDescarga } from '@/lib/descargas'
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session'
 
 export const dynamic = 'force-dynamic'
 
-function isAdmin(req: NextRequest) {
-  return req.cookies.get('eg_admin')?.value === 'true'
+async function isAdmin(req: NextRequest) {
+  return verifyAdminToken(req.cookies.get(ADMIN_COOKIE)?.value)
 }
 
 // Público: lista de descargas para la web
@@ -18,7 +19,7 @@ export async function GET() {
 
 // Admin: crear una descarga
 export async function POST(req: NextRequest) {
-  if (!isAdmin(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  if (!(await isAdmin(req))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   const d = await req.json()
   if (!d.titulo || !d.linkDescarga) {
     return NextResponse.json({ error: 'Faltan título o link' }, { status: 400 })

@@ -6,7 +6,7 @@ import { X, Download, MessageCircle, FileText, Plus, Loader2 } from 'lucide-reac
 const NEG = {
   razonSocial:  'ELECTROGAMEZ SERVICIO TECNICO RG',
   titular:      'FAZZINI SERGIO FEDERICO',
-  domicilio:    'Los Pozos 458 Dpto:8, Rio Gallegos, Santa Cruz',
+  domicilio:    'Los Pozos 458, Rio Gallegos, Santa Cruz',
   cuit:         '20214293286',
   iibb:         '1-28775',
   inicio:       '01/04/2017',

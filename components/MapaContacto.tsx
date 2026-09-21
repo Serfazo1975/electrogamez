@@ -39,7 +39,7 @@ export default function MapaContacto() {
             📍 ElectroGamez - Servicio Técnico
           </p>
           <p style={{ color: '#94a3b8', fontSize: 12, margin: '4px 0 0' }}>
-            Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz
+            Los Pozos 458, Río Gallegos, Santa Cruz
           </p>
         </div>
         <a href="https://maps.app.goo.gl/AXvJWjFLkQGkzNrVA"

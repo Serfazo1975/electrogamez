@@ -31,7 +31,7 @@ interface FacturaHist {
 const EMISOR = {
   razonSocial: 'FAZZINI SERGIO FEDERICO',
   fantasia: 'ELECTROGAMEZ SERVICIO TECNICO RG',
-  domicilio: 'Los Pozos 458 Dpto:8 - Rio Gallegos, Santa Cruz',
+  domicilio: 'Los Pozos 458 - Rio Gallegos, Santa Cruz',
   cuit: '20214293286',
   iibb: '1-28775',
   inicio: '01/04/2017',
@@ -514,7 +514,10 @@ export default function FacturacionPage() {
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <h3 style={{ fontWeight: 700 }}>📋 Facturas emitidas</h3>
-          <button onClick={cargarFacturas} style={btnSecundario}>{cargandoLista ? '...' : '🔄 Actualizar'}</button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <a href="/facturas.html" target="_blank" rel="noopener" style={{ ...btnSecundario, textDecoration: 'none', display: 'inline-block' }}>🖨️ Ver / Reimprimir</a>
+            <button onClick={cargarFacturas} style={btnSecundario}>{cargandoLista ? '...' : '🔄 Actualizar'}</button>
+          </div>
         </div>
         {facturas.length === 0 ? (
           <p style={{ color: '#64748b', fontSize: 14 }}>Todavía no hay facturas emitidas.</p>

@@ -17,7 +17,7 @@ interface Item {
 const EMISOR = {
   fantasia: 'ELECTROGAMEZ SERVICIO TECNICO RG',
   razonSocial: 'FAZZINI SERGIO FEDERICO',
-  domicilio: 'Los Pozos 458 Dpto:8 - Rio Gallegos, Santa Cruz',
+  domicilio: 'Los Pozos 458 - Rio Gallegos, Santa Cruz',
   cuit: '20214293286',
   tel: '11 5697 5880',
   leyenda: 'Somos un Grupo de Tecnicos dedicados a la informatica. Atencion a Empresas y Usuarios.',

@@ -1253,7 +1253,7 @@ export default function DashboardPage() {
                 ['CUIT', '20-21429328-6'],
                 ['Ingresos Brutos', '1-28775'],
                 ['Inicio actividades', '01/04/2017'],
-                ['Domicilio', 'Los Pozos 458 Dpto:8, Río Gallegos'],
+                ['Domicilio', 'Los Pozos 458, Río Gallegos'],
                 ['Punto de Venta', '00003'],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between text-sm">

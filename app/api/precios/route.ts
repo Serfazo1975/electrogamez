@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,9 +10,8 @@ async function db() {
   return prismaModule.prisma;
 }
 
-function esAdmin(): boolean {
-  const cookie = cookies().get('eg_admin');
-  return !!cookie && cookie.value === 'true';
+async function esAdmin(): Promise<boolean> {
+  return verifyAdminToken(cookies().get(ADMIN_COOKIE)?.value);
 }
 
 const PRECIOS_DEFAULT = [
@@ -55,7 +55,7 @@ export async function GET() {
 
 // PUT: solo admin puede editar precios
 export async function PUT(req: NextRequest) {
-  if (!esAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  if (!(await esAdmin())) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
     const prisma = await db();
     await ensureTabla(prisma);

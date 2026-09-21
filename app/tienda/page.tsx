@@ -340,7 +340,7 @@ export default function TiendaPage() {
 
       <footer className="border-t border-gray-800/60 py-8 text-center text-gray-500 text-sm">
         <p className="font-semibold text-gray-400">ElectroGamez Servicio Técnico RG</p>
-        <p className="mt-1">Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz</p>
+        <p className="mt-1">Los Pozos 458, Río Gallegos, Santa Cruz</p>
         <a href="/legales" className="inline-block mt-3 text-xs text-gray-500 hover:text-cyan-400 transition">Información legal · Botón de arrepentimiento · Términos y condiciones</a>
         {/* Acceso admin sin exponer link público: /tienda?admin=1 */}
       </footer>

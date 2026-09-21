@@ -9,7 +9,7 @@ const REVIEW_URL = 'https://maps.app.goo.gl/4H4MGMC7uVY5sKeY9'
 const NEG = {
   razonSocial: 'ELECTROGAMEZ SERVICIO TECNICO RG',
   titular:     'Fazzini Sergio Federico',
-  domicilio:   'Los Pozos 458 Dpto:8, Río Gallegos, Santa Cruz',
+  domicilio:   'Los Pozos 458, Río Gallegos, Santa Cruz',
   whatsapp:    '+54 9 11 5697 5880',
   email:       'sergiofazzini@gmail.com',
   web:         'electrogamez.netlify.app',
