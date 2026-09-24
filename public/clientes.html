@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Clientes · ElectroGamez</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Misma paleta que el panel (Tailwind gray / blue / cyan) */
+:root{
+  --g900:#111827;--g800:#1f2937;--g700:#374151;--g600:#4b5563;--g500:#6b7280;--g400:#9ca3af;--g300:#d1d5db;
+  --blue:#2563eb;--blue5:#3b82f6;--blue4:#60a5fa;--cyan:#06b6d4;--cyan4:#22d3ee;
+  --green4:#4ade80;--orange4:#fb923c;--red4:#f87171;--yellow4:#facc15;--violet4:#a78bfa;--emerald4:#34d399;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--g900);color:#fff;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg.i{width:20px;height:20px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+svg.i.sm{width:16px;height:16px}
+.app{display:flex;height:100vh}
+
+/* ── Sidebar (idéntico al panel) ── */
+aside{width:256px;background:rgba(31,41,55,.95);border-right:1px solid var(--g700);display:flex;flex-direction:column;flex-shrink:0;z-index:40;transition:transform .2s}
+.brand{padding:20px 24px;border-bottom:1px solid var(--g700);display:flex;justify-content:space-between;align-items:center}
+.brand a{font-size:20px;font-weight:700;background:linear-gradient(90deg,var(--blue5),var(--cyan4));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.nv{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:12px;font-weight:500;color:var(--g400);transition:.15s}
+.nv:hover{color:#fff;background:var(--g700)}
+.nv.on{background:var(--blue);color:#fff}
+.side-bot{padding:16px 12px;border-top:1px solid var(--g700);display:flex;flex-direction:column;gap:4px}
+.sb{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:12px;transition:.15s}
+.sb .e{font-size:18px}
+.sb.green{color:var(--green4)}.sb.green:hover{background:#16a34a;color:#fff}
+.sb.orange{color:var(--orange4)}.sb.orange:hover{background:#ea580c;color:#fff}
+.sb.cyan{color:var(--cyan4)}.sb.cyan:hover{background:#0891b2;color:#fff}
+.sb.violet{color:var(--violet4)}.sb.violet:hover{background:#7c3aed;color:#fff}
+.sb.gray{color:var(--g400)}.sb.gray:hover{background:var(--g700);color:#fff}
+.sb.red{color:var(--red4)}.sb.red:hover{background:rgba(127,29,29,.2)}
+.overlay{display:none}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+header.top{background:rgba(31,41,55,.5);border-bottom:1px solid var(--g700);padding:16px 32px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+header.top h1{font-size:18px;font-weight:600}
+header.top p{font-size:12px;color:var(--g400);text-transform:none}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.menu-btn{display:none;color:var(--g400);margin-right:16px}
+main{flex:1;overflow-y:auto;padding:32px}
+.stack{display:flex;flex-direction:column;gap:20px;max-width:1500px}
+
+/* Barra de búsqueda */
+.bar{display:flex;gap:12px}
+.search{position:relative;flex:1}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--g500)}
+.search input{width:100%;background:var(--g800);border:1px solid var(--g700);border-radius:12px;padding:11px 70px 11px 40px;color:#fff;font:inherit;outline:none;transition:border-color .15s}
+.search input:focus{border-color:var(--blue5)}
+.search input::placeholder{color:var(--g500)}
+.kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--g500);border:1px solid var(--g700);border-radius:6px;padding:1px 6px}
+.clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--g400);display:none;padding:4px}
+.clear:hover{color:#fff}
+.btn-grad{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--blue),var(--cyan));padding:10px 16px;border-radius:12px;font-weight:500;white-space:nowrap;transition:filter .15s}
+.btn-grad:hover{filter:brightness(1.12)}
+
+/* Filtros NUEVOS */
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 12px;border-radius:999px;font-size:12px;color:var(--g400);background:rgba(31,41,55,.6);border:1px solid var(--g700);transition:.15s}
+.chip:hover{color:#fff;border-color:var(--g600)}
+.chip.on{background:rgba(37,99,235,.2);border-color:var(--blue5);color:var(--blue4)}
+.chip b{font-weight:600;margin-left:4px}
+.sort{background:var(--g800);border:1px solid var(--g700);color:var(--g300);border-radius:10px;padding:6px 10px;font:inherit;font-size:12px;outline:none}
+.count{font-size:12px;color:var(--g400)}
+
+/* Tarjetas (mismo formato que el panel) */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:rgba(31,41,55,.6);border:1px solid var(--g700);border-radius:16px;padding:20px;transition:border-color .15s;display:flex;flex-direction:column}
+.card:hover{border-color:var(--g600)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.ini{width:40px;height:40px;border-radius:50%;background:rgba(37,99,235,.3);color:var(--blue4);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px}
+.ico-btn{padding:6px;border-radius:8px;color:var(--g500);transition:.15s}
+.ico-btn:hover{color:#fff;background:var(--g700)}
+.card h3{font-weight:600;font-size:15px}
+.card .ph{color:var(--g400);margin-top:2px}
+.card .em{color:var(--g500);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .cuit{color:var(--cyan4);font-size:12px;margin-top:4px;font-family:ui-monospace,Consolas,monospace}
+.card .iva{color:var(--g400);font-size:12px;margin-top:2px}
+.card .dir{color:var(--g500);font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .foot{display:flex;justify-content:space-between;margin-top:auto;padding-top:16px;border-top:1px solid var(--g700);font-size:12px;color:var(--g400)}
+.card .spacer{height:16px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.bdg{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--g800);border:1px solid var(--g700);color:var(--g300)}
+.bdg.dup{background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.4);color:var(--yellow4)}
+.card-actions{display:flex;gap:8px;margin-top:12px}
+.btn-hist{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;border-radius:12px;font-size:12px;font-weight:500;color:var(--cyan4);background:rgba(8,145,178,.1);transition:.15s}
+.btn-hist:hover{background:rgba(8,145,178,.2)}
+.btn-wa{display:flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:12px;color:#4ade80;background:rgba(22,163,74,.1)}
+.btn-wa:hover{background:rgba(22,163,74,.2)}
+mark{background:rgba(250,204,21,.25);color:#fde68a;border-radius:3px;padding:0 1px}
+.empty{text-align:center;padding:48px 0;color:var(--g500)}
+.msg{background:rgba(127,29,29,.35);border:1px solid #7f1d1d;border-radius:12px;padding:14px 16px;color:#fecaca}
+.msg a{color:var(--blue4);text-decoration:underline}
+#aviso:empty{display:none}
+
+/* ── Ficha del cliente (panel lateral NUEVO) ── */
+.drawer-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:50;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(860px,100%);background:var(--g900);border-left:1px solid var(--g700);z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease}
+.drawer.on{transform:none}.drawer-bg.on{display:block}
+.dh{padding:20px 24px;border-bottom:1px solid var(--g700);background:rgba(31,41,55,.6);display:flex;gap:16px;align-items:flex-start}
+.dh .ini{width:52px;height:52px;font-size:20px}
+.dh h2{font-size:20px;font-weight:700}
+.dh .meta{color:var(--g400);font-size:13px;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.dh .meta .c{color:var(--cyan4);font-family:ui-monospace,Consolas,monospace}
+.dh .x{margin-left:auto;color:var(--g400);padding:4px}.dh .x:hover{color:#fff}
+.dacts{display:flex;flex-wrap:wrap;gap:8px;padding:14px 24px;border-bottom:1px solid var(--g700)}
+.ab{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:500;border:1px solid var(--g700);background:var(--g800);color:var(--g300);transition:.15s}
+.ab:hover{border-color:var(--g500);color:#fff}
+.ab.o{color:var(--orange4)}.ab.g{color:var(--green4)}.ab.w{color:#4ade80}
+.dbody{flex:1;overflow-y:auto;padding:20px 24px 40px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:rgba(31,41,55,.6);border:1px solid var(--g700);border-radius:14px;padding:14px}
+.kpi span{font-size:11px;color:var(--g400)}
+.kpi b{display:block;font-size:19px;margin-top:4px;font-weight:700}
+.kpi.b b{color:var(--blue4)}.kpi.o b{color:var(--orange4)}.kpi.g b{color:var(--green4)}.kpi.r b{color:var(--red4)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--g700);margin-bottom:14px;overflow-x:auto}
+.tab{padding:10px 14px;font-size:13px;font-weight:500;color:var(--g400);border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:#fff}
+.tab.on{color:#fff;border-color:var(--blue5)}
+.tab small{background:var(--g700);border-radius:999px;padding:1px 7px;margin-left:6px;font-size:11px}
+.rows{display:flex;flex-direction:column;gap:10px}
+.row{background:rgba(31,41,55,.6);border:1px solid var(--g700);border-radius:14px;overflow:hidden}
+.rh{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+.rh:hover{background:rgba(55,65,81,.35)}
+.tipo{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tipo.rep{background:rgba(37,99,235,.2)}.tipo.pre{background:rgba(234,88,12,.18)}.tipo.fac{background:rgba(22,163,74,.18)}
+.rt{flex:1;min-width:0}
+.rt b{font-weight:600;font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt span{font-size:12px;color:var(--g400)}
+.ra{text-align:right;flex-shrink:0}
+.ra b{font-size:14px}
+.ra span{display:block;font-size:11px;color:var(--g500);margin-top:2px}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.p-red{background:rgba(127,29,29,.5);color:#fca5a5}.p-grn{background:rgba(6,78,59,.5);color:#6ee7b7}
+.p-blu{background:rgba(30,58,138,.5);color:#93c5fd}.p-yel{background:rgba(113,63,18,.5);color:#fde68a}
+.p-gry{background:var(--g700);color:var(--g300)}
+.rd{display:none;padding:0 14px 14px 60px;font-size:12px;color:var(--g300)}
+.row.open .rd{display:block}
+.rd table{width:100%;border-collapse:collapse;margin-top:6px}
+.rd th{text-align:left;color:var(--g500);font-weight:500;padding:5px 6px;border-bottom:1px solid var(--g700)}
+.rd td{padding:5px 6px;border-bottom:1px solid rgba(55,65,81,.5)}
+.rd .r{text-align:right}
+.rd .acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.nada{color:var(--g500);text-align:center;padding:32px 0;font-size:13px}
+
+/* Modal cliente */
+.modal-bg{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.modal-bg.on{display:flex}
+.modal{background:var(--g800);border:1px solid var(--g700);border-radius:16px;width:100%;max-width:512px;box-shadow:0 25px 50px rgba(0,0,0,.5)}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--g700)}
+.mh h2{font-size:17px;font-weight:600}
+.mb{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.mb label{font-size:13px;color:var(--g400);display:block;margin-bottom:6px}
+.mb input,.mb select{width:100%;background:var(--g900);border:1px solid var(--g700);border-radius:12px;padding:10px 14px;color:#fff;font:inherit;outline:none}
+.mb input:focus,.mb select:focus{border-color:var(--blue5)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mf{display:flex;gap:10px;justify-content:flex-end;padding-top:6px}
+.btn-sec{padding:10px 16px;border-radius:12px;border:1px solid var(--g700);color:var(--g300)}
+.btn-sec:hover{border-color:var(--g500);color:#fff}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--g800);border:1px solid var(--g700);padding:10px 18px;border-radius:12px;font-size:13px;z-index:80;transition:transform .25s}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+@media (max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:1023px){
+  aside{position:fixed;inset:0 auto 0 0;transform:translateX(-100%)}
+  aside.on{transform:none}
+  .overlay.on{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30}
+  .menu-btn{display:block}
+  header.top{padding:16px}
+  main{padding:16px}
+}
+@media (max-width:640px){.grid{grid-template-columns:1fr}.bar{flex-direction:column}.two{grid-template-columns:1fr}.rd{padding-left:14px}.dh,.dacts,.dbody{padding-left:16px;padding-right:16px}}
+@media print{
+  body{background:#fff;color:#000;overflow:visible}
+  aside,header.top,main,.drawer-bg,.dacts,.tabs,.dh .x,.toast,.ab{display:none!important}
+  .drawer{position:static;transform:none;width:100%;border:0;background:#fff}
+  .dh,.kpi,.row{background:#fff!important;border-color:#999!important;color:#000}
+  .dh h2,.kpi b,.rt b,.ra b{color:#000!important}
+  .rd{display:block!important;color:#000}
+  .dbody{overflow:visible}
+}
+</style>
+</head>
+<body>
+
+<!-- Íconos (mismos que el panel: lucide) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-pkg" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-dl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
+    <symbol id="i-wa" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- ── Sidebar ── -->
+  <aside id="side">
+    <div class="brand"><a href="/">ElectroGamez</a><button class="menu-btn" style="display:none" onclick="toggleSide(false)"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <nav>
+      <a class="nv" href="/dashboard?tab=resumen"><svg class="i"><use href="#i-dash"/></svg>Resumen</a>
+      <a class="nv" href="/dashboard?tab=reparaciones"><svg class="i"><use href="#i-wrench"/></svg>Reparaciones</a>
+      <a class="nv on" href="/clientes.html"><svg class="i"><use href="#i-users"/></svg>Clientes</a>
+      <a class="nv" href="/dashboard?tab=inventario"><svg class="i"><use href="#i-pkg"/></svg>Inventario</a>
+      <a class="nv" href="/dashboard?tab=descargas"><svg class="i"><use href="#i-dl"/></svg>Descargas</a>
+    </nav>
+    <div class="side-bot">
+      <a class="sb green" href="/admin/facturacion"><span class="e">🧾</span>Facturar (ARCA)</a>
+      <a class="sb orange" href="/admin/presupuesto"><span class="e">📄</span>Presupuesto</a>
+      <a class="sb violet" href="/facturas.html"><span class="e">🗂️</span>Facturas emitidas</a>
+      <a class="sb cyan" href="/tienda?admin=1"><span class="e">🛒</span>Administrar Tienda</a>
+      <a class="sb cyan" href="/admin/precios"><span class="e">💰</span>Precios web</a>
+      <a class="sb gray" href="/dashboard"><svg class="i"><use href="#i-gear"/></svg>Volver al panel</a>
+      <a class="sb gray" href="/"><svg class="i"><use href="#i-out"/></svg>Ver sitio público</a>
+      <button class="sb red" onclick="salir()"><svg class="i"><use href="#i-out"/></svg>Cerrar sesión</button>
+    </div>
+  </aside>
+  <div class="overlay" id="ovl" onclick="toggleSide(false)"></div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <header class="top">
+      <div style="display:flex;align-items:center">
+        <button class="menu-btn" onclick="toggleSide(true)"><svg class="i" style="width:24px;height:24px"><use href="#i-menu"/></svg></button>
+        <div><h1>Clientes</h1><p id="hoy"></p></div>
+      </div>
+      <div class="avatar">S</div>
+    </header>
+
+    <main>
+      <div class="stack">
+        <div id="aviso"></div>
+
+        <div class="bar">
+          <div class="search">
+            <svg class="i sm"><use href="#i-search"/></svg>
+            <input id="q" type="text" autocomplete="off" placeholder="Buscar por nombre, teléfono, CUIT, email o dirección…">
+            <span class="kbd" id="kbd">/</span>
+            <button class="clear" id="clr" onclick="limpiar()" title="Limpiar"><svg class="i sm"><use href="#i-x"/></svg></button>
+          </div>
+          <button class="btn-grad" onclick="abrirForm()"><svg class="i sm"><use href="#i-plus"/></svg>Nuevo cliente</button>
+        </div>
+
+        <div class="tools">
+          <div class="chips" id="chips"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span class="count" id="count"></span>
+            <select class="sort" id="orden">
+              <option value="rec">Más recientes</option>
+              <option value="az">Nombre A–Z</option>
+              <option value="rep">Más reparaciones</option>
+              <option value="ult">Última actividad</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+        <div class="empty" id="vacio" style="display:none"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ── Ficha del cliente ── -->
+<div class="drawer-bg" id="dbg" onclick="cerrarFicha()"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true">
+  <div class="dh" id="dh"></div>
+  <div class="dacts" id="dacts"></div>
+  <div class="dbody">
+    <div class="kpis" id="kpis"></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="rows" id="rows"></div>
+  </div>
+</div>
+
+<!-- ── Modal nuevo / editar cliente ── -->
+<div class="modal-bg" id="mbg">
+  <div class="modal">
+    <div class="mh"><h2 id="mt">Nuevo cliente</h2><button onclick="cerrarForm()" style="color:var(--g400)"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="mb">
+      <div><label>Nombre / Razón social *</label><input id="f_name"></div>
+      <div class="two">
+        <div><label>Teléfono</label><input id="f_phone" inputmode="tel"></div>
+        <div><label>Email</label><input id="f_email" type="email"></div>
+      </div>
+      <div class="two">
+        <div><label>CUIT / DNI</label><input id="f_cuit" inputmode="numeric"></div>
+        <div><label>Condición IVA</label>
+          <select id="f_iva"><option value="">—</option><option>Consumidor Final</option><option>Monotributista</option><option>Responsable Inscripto</option><option>Exento</option></select>
+        </div>
+      </div>
+      <div><label>Dirección</label><input id="f_address"></div>
+      <div class="mf"><button class="btn-sec" onclick="cerrarForm()">Cancelar</button><button class="btn-grad" id="f_ok" onclick="guardarCliente()">Guardar</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// public/clientes.html  —  ARCHIVO NUEVO
+// Clientes con búsqueda real + historial por cliente
+// (reparaciones · presupuestos · facturas ARCA).
+// Usa las APIs existentes /api/clients y la NUEVA /api/historial.
+// ============================================================
+const EMISOR = {
+  fantasia: 'ELECTROGAMEZ SERVICIO TECNICO RG',
+  razonSocial: 'FAZZINI SERGIO FEDERICO',
+  domicilio: 'Los Pozos 458 - Rio Gallegos, Santa Cruz',
+  cuit: '20214293286',
+  tel: '11 5697 5880',
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const dig = s => String(s ?? '').replace(/\D/g, '');
+const telKey = s => dig(s).slice(-10);
+const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-AR');
+const money2 = n => new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
+const moneyToNum = v => typeof v === 'number' ? v : (parseInt(String(v ?? '').replace(/\D/g, '')) || 0);
+const dmyToTime = s => { const m = /^(\d{2})\/(\d{2})\/(\d{4})/.exec(s || ''); return m ? new Date(+m[3], +m[2]-1, +m[1]).getTime() : 0; };
+
+let CLIENTES = [], RESUMEN = {}, FILTRO = 'todos', FICHA = null, TAB = 'todo', EDIT = null;
+
+$('hoy').textContent = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+// ── Carga ──────────────────────────────────────────────────
+async function cargar() {
+  $('grid').innerHTML = '<div class="empty" style="grid-column:1/-1">Cargando clientes…</div>';
+  try {
+    const r = await fetch('/api/clients', { credentials: 'same-origin', cache: 'no-store' });
+    if (r.status === 401) return sinAcceso();
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    CLIENTES = await r.json();
+    if (!Array.isArray(CLIENTES)) CLIENTES = [];
+    CLIENTES.forEach((c, i) => c._ord = i);
+  } catch (e) {
+    $('aviso').innerHTML = '<div class="msg">No se pudieron cargar los clientes: ' + esc(e.message) + '</div>';
+    CLIENTES = [];
+  }
+  marcarDuplicados();
+  render();
+  // Conteo de presupuestos/facturas (no bloquea la búsqueda)
+  fetch('/api/historial?resumen=1', { credentials: 'same-origin', cache: 'no-store' })
+    .then(r => r.ok ? r.json() : {}).then(j => { RESUMEN = j || {}; render(); }).catch(() => {});
+  // Abrir ficha directa: /clientes.html?id=XXXX   o buscar: ?q=marcos
+  const p = new URLSearchParams(location.search);
+  if (p.get('q')) { $('q').value = p.get('q'); render(); }
+  if (p.get('id')) abrirFicha(p.get('id'));
+}
+
+function sinAcceso() {
+  $('aviso').innerHTML = '<div class="msg">🔒 Necesitás iniciar sesión como administrador. Entrá por <a href="/login">/login</a> y volvé a abrir esta página.</div>';
+  $('grid').innerHTML = '';
+}
+
+// Mismo teléfono (últimos 10 dígitos) o mismo CUIT → posible cliente duplicado
+function marcarDuplicados() {
+  const porTel = {}, porCuit = {};
+  CLIENTES.forEach(c => {
+    const t = telKey(c.phone); if (t.length >= 8) (porTel[t] = porTel[t] || []).push(c);
+    const k = dig(c.cuit); if (k.length >= 7) (porCuit[k] = porCuit[k] || []).push(c);
+  });
+  CLIENTES.forEach(c => {
+    const a = (porTel[telKey(c.phone)] || []).concat(porCuit[dig(c.cuit)] || []);
+    c._dups = [...new Set(a.filter(x => x !== c).map(x => x.name))];
+  });
+}
+
+// ── Búsqueda ───────────────────────────────────────────────
+function coincide(c, q) {
+  if (!q) return true;
+  const texto = norm([c.name, c.email, c.address, c.condIva].join(' '));
+  const qDig = dig(q);
+  const nums = dig(c.phone) + ' ' + dig(c.cuit);
+  // Todas las palabras deben aparecer (ej: "marcos carr" encuentra "Marcos Carrillo")
+  const palabras = norm(q).split(/\s+/).filter(Boolean);
+  if (palabras.every(w => texto.includes(w))) return true;
+  return qDig.length >= 3 && nums.includes(qDig);
+}
+
+function resaltar(txt, q) {
+  const t = String(txt ?? '');
+  const palabras = norm(q).split(/\s+/).filter(w => w.length > 0 && !/^\d+$/.test(w));
+  if (!palabras.length) return esc(t);
+  const n = norm(t);
+  const marcas = new Array(t.length).fill(false);
+  palabras.forEach(w => { let i = n.indexOf(w); while (i >= 0) { for (let k = i; k < i + w.length; k++) marcas[k] = true; i = n.indexOf(w, i + 1); } });
+  let out = '', dentro = false;
+  for (let i = 0; i < t.length; i++) {
+    if (marcas[i] && !dentro) { out += '<mark>'; dentro = true; }
+    if (!marcas[i] && dentro) { out += '</mark>'; dentro = false; }
+    out += esc(t[i]);
+  }
+  return out + (dentro ? '</mark>' : '');
+}
+
+function pasaFiltro(c) {
+  const r = RESUMEN[c.id] || {};
+  switch (FILTRO) {
+    case 'cuit': return !!dig(c.cuit);
+    case 'pres': return (r.presupuestos || 0) > 0;
+    case 'fact': return (r.facturas || 0) > 0;
+    case 'sinrep': return !c.repairs;
+    case 'dup': return c._dups && c._dups.length > 0;
+    default: return true;
+  }
+}
+
+function render() {
+  const q = $('q').value.trim();
+  $('clr').style.display = q ? 'block' : 'none';
+  $('kbd').style.display = q ? 'none' : 'block';
+
+  const chips = [
+    ['todos', 'Todos', CLIENTES.length],
+    ['cuit', 'Con CUIT', CLIENTES.filter(c => dig(c.cuit)).length],
+    ['pres', 'Con presupuestos', CLIENTES.filter(c => (RESUMEN[c.id] || {}).presupuestos > 0).length],
+    ['fact', 'Con facturas', CLIENTES.filter(c => (RESUMEN[c.id] || {}).facturas > 0).length],
+    ['sinrep', 'Sin reparaciones', CLIENTES.filter(c => !c.repairs).length],
+    ['dup', '⚠ Posibles duplicados', CLIENTES.filter(c => c._dups && c._dups.length).length],
+  ];
+  $('chips').innerHTML = chips.map(([k, l, n]) =>
+    `<button class="chip ${FILTRO === k ? 'on' : ''}" onclick="setFiltro('${k}')">${l}<b>${n}</b></button>`).join('');
+
+  let lista = CLIENTES.filter(c => coincide(c, q) && pasaFiltro(c));
+  const orden = $('orden').value;
+  if (orden === 'az') lista.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  else if (orden === 'rep') lista.sort((a, b) => (b.repairs || 0) - (a.repairs || 0));
+  else if (orden === 'ult') lista.sort((a, b) => dmyToTime(b.lastRepair) - dmyToTime(a.lastRepair));
+  else lista.sort((a, b) => a._ord - b._ord);
+  // Si se busca, los que EMPIEZAN con lo buscado van primero
+  if (q) { const nq = norm(q); lista.sort((a, b) => (norm(b.name).startsWith(nq) ? 1 : 0) - (norm(a.name).startsWith(nq) ? 1 : 0)); }
+
+  $('count').textContent = (q || FILTRO !== 'todos') ? `${lista.length} de ${CLIENTES.length} clientes` : `${CLIENTES.length} clientes`;
+
+  $('grid').innerHTML = lista.map(c => {
+    const r = RESUMEN[c.id] || {};
+    const wa = telKey(c.phone);
+    return `<div class="card">
+      <div class="card-top">
+        <div class="ini">${esc((c.name || '?')[0])}</div>
+        <button class="ico-btn" title="Editar cliente" onclick="abrirForm('${esc(c.id)}')"><svg class="i sm"><use href="#i-edit"/></svg></button>
+      </div>
+      <h3>${resaltar(c.name, q)}</h3>
+      ${c.phone ? `<p class="ph">${resaltar(c.phone, q)}</p>` : ''}
+      ${c.email ? `<p class="em">${resaltar(c.email, q)}</p>` : ''}
+      ${c.cuit ? `<p class="cuit">CUIT: ${esc(c.cuit)}</p>` : ''}
+      ${c.condIva ? `<p class="iva">${esc(c.condIva)}</p>` : ''}
+      ${c.address ? `<p class="dir">📍 ${resaltar(c.address, q)}</p>` : ''}
+      <div class="badges">
+        ${r.presupuestos ? `<span class="bdg">📄 ${r.presupuestos} presupuesto${r.presupuestos !== 1 ? 's' : ''}</span>` : ''}
+        ${r.facturas ? `<span class="bdg">🧾 ${r.facturas} factura${r.facturas !== 1 ? 's' : ''}</span>` : ''}
+        ${c._dups && c._dups.length ? `<span class="bdg dup" title="Mismo teléfono o CUIT que: ${esc(c._dups.join(', '))}">⚠ Duplicado: ${esc(c._dups[0])}</span>` : ''}
+      </div>
+      <div class="spacer"></div>
+      <div class="foot" style="margin-top:0">
+        <span>${c.repairs || 0} ${c.repairs === 1 ? 'reparación' : 'reparaciones'}</span>
+        <span>Última: ${esc(c.lastRepair || '—')}</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn-hist" onclick="abrirFicha('${esc(c.id)}')"><svg class="i sm"><use href="#i-list"/></svg>Ver historial</button>
+        ${wa.length >= 8 ? `<a class="btn-wa" title="WhatsApp" target="_blank" rel="noopener" href="https://wa.me/549${wa}"><svg class="i sm"><use href="#i-wa"/></svg></a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const v = $('vacio');
+  if (!lista.length && CLIENTES.length) {
+    v.style.display = 'block';
+    v.innerHTML = q ? `No se encontraron clientes con “${esc(q)}”.<br><br><button class="btn-grad" style="display:inline-flex" onclick="abrirForm(null, $('q').value)"><svg class="i sm"><use href="#i-plus"/></svg>Crear “${esc(q)}”</button>` : 'No hay clientes con este filtro.';
+  } else v.style.display = 'none';
+}
+
+function setFiltro(k) { FILTRO = k; render(); }
+function limpiar() { $('q').value = ''; render(); $('q').focus(); }
+$('q').addEventListener('input', render);
+$('orden').addEventListener('change', render);
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); $('q').focus(); }
+  if (e.key === 'Escape') {
+    if ($('mbg').classList.contains('on')) cerrarForm();
+    else if (FICHA) cerrarFicha();
+    else if ($('q').value) limpiar();
+  }
+});
+
+// ── Ficha del cliente ──────────────────────────────────────
+async function abrirFicha(id) {
+  FICHA = { cargando: true }; TAB = 'todo';
+  $('dbg').classList.add('on'); $('drawer').classList.add('on');
+  const c = CLIENTES.find(x => x.id === id);
+  $('dh').innerHTML = `<div class="ini">${esc(((c && c.name) || '?')[0])}</div><div><h2>${esc(c ? c.name : 'Cliente')}</h2><div class="meta">Cargando historial…</div></div><button class="x" onclick="cerrarFicha()"><svg class="i"><use href="#i-x"/></svg></button>`;
+  $('dacts').innerHTML = ''; $('kpis').innerHTML = ''; $('tabs').innerHTML = ''; $('rows').innerHTML = '';
+  history.replaceState(null, '', '?id=' + encodeURIComponent(id));
+  try {
+    const r = await fetch('/api/historial?clientId=' + encodeURIComponent(id), { credentials: 'same-origin', cache: 'no-store' });
+    if (r.status === 401) { cerrarFicha(); return sinAcceso(); }
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detalle || j.error || 'Error');
+    FICHA = j;
+    pintarFicha();
+  } catch (e) {
+    $('rows').innerHTML = `<div class="msg">No se pudo cargar el historial: ${esc(e.message)}</div>`;
+  }
+}
+
+function cerrarFicha() {
+  FICHA = null;
+  $('dbg').classList.remove('on'); $('drawer').classList.remove('on');
+  history.replaceState(null, '', location.pathname);
+}
+
+function itemsNorm(items) {
+  return (items || []).map(i => ({
+    d: i.descripcion ?? i.desc ?? '',
+    q: Number(i.cantidad ?? i.qty ?? 1) || 1,
+    p: Number(i.precioUnitario ?? i.price ?? 0) || 0,
+  }));
+}
+
+const ESTADOS = {
+  received: ['Recibido', 'p-gry'], diagnosing: ['Diagnóstico', 'p-blu'], waiting_parts: ['Esperando repuestos', 'p-yel'],
+  in_progress: ['En reparación', 'p-blu'], ready: ['Listo para retirar', 'p-grn'], completed: ['Completado', 'p-grn'],
+  delivered: ['Entregado', 'p-grn'], cancelled: ['Cancelado', 'p-red'],
+};
+
+function pintarFicha() {
+  const { cliente: c, reparaciones: R, presupuestos: P, facturas: F } = FICHA;
+  const wa = telKey(c.phone);
+  $('dh').innerHTML = `
+    <div class="ini">${esc((c.name || '?')[0])}</div>
+    <div style="min-width:0">
+      <h2>${esc(c.name)}</h2>
+      <div class="meta">
+        ${c.phone ? `<span>📞 ${esc(c.phone)}</span>` : ''}
+        ${c.email ? `<span>✉️ ${esc(c.email)}</span>` : ''}
+        ${c.cuit ? `<span class="c">CUIT: ${esc(c.cuit)}</span>` : ''}
+        ${c.condIva ? `<span>${esc(c.condIva)}</span>` : ''}
+        ${c.address ? `<span>📍 ${esc(c.address)}</span>` : ''}
+      </div>
+    </div>
+    <button class="x" onclick="cerrarFicha()" title="Cerrar (Esc)"><svg class="i"><use href="#i-x"/></svg></button>`;
+
+  const qs = new URLSearchParams({ id: c.id, cliente: c.name, tel: c.phone || '', cuit: c.cuit || '' });
+  $('dacts').innerHTML = `
+    <a class="ab o" href="/admin/presupuesto?${qs}">📄 Nuevo presupuesto</a>
+    <a class="ab g" href="/admin/facturacion">🧾 Facturar (ARCA)</a>
+    <a class="ab" href="/dashboard?tab=reparaciones&q=${encodeURIComponent(c.name)}">🔧 Ver en reparaciones</a>
+    ${wa.length >= 8 ? `<a class="ab w" target="_blank" rel="noopener" href="https://wa.me/549${wa}">💬 WhatsApp</a>` : ''}
+    <button class="ab" onclick="abrirForm('${esc(c.id)}')">✏️ Editar datos</button>
+    <button class="ab" onclick="exportarCSV()">⬇️ Exportar CSV</button>
+    <button class="ab" onclick="window.print()">🖨️ Imprimir ficha</button>`;
+
+  const totPres = P.reduce((s, x) => s + x.total, 0);
+  const totFact = F.filter(f => f.resultado === 'A').reduce((s, x) => s + x.total, 0);
+  const pend = R.filter(r => (r.payment || 'pending') === 'pending' && r.status !== 'cancelled').reduce((s, r) => s + moneyToNum(r.cost), 0);
+  $('kpis').innerHTML = `
+    <div class="kpi b"><span>Reparaciones</span><b>${R.length}</b></div>
+    <div class="kpi o"><span>Presupuestado</span><b>${money(totPres)}</b></div>
+    <div class="kpi g"><span>Facturado (ARCA)</span><b>${money(totFact)}</b></div>
+    <div class="kpi r"><span>Pendiente de cobro</span><b>${money(pend)}</b></div>`;
+
+  const tabs = [['todo', 'Todo', R.length + P.length + F.length], ['rep', '🔧 Reparaciones', R.length], ['pre', '📄 Presupuestos', P.length], ['fac', '🧾 Facturas', F.length]];
+  $('tabs').innerHTML = tabs.map(([k, l, n]) => `<button class="tab ${TAB === k ? 'on' : ''}" onclick="TAB='${k}';pintarFicha()">${l}<small>${n}</small></button>`).join('');
+
+  // Línea de tiempo unificada
+  let items = [];
+  if (TAB === 'todo' || TAB === 'rep') R.forEach((r, i) => items.push({ t: 'rep', f: dmyToTime(r.date), i }));
+  if (TAB === 'todo' || TAB === 'pre') P.forEach((p, i) => items.push({ t: 'pre', f: dmyToTime(p.fecha), i }));
+  if (TAB === 'todo' || TAB === 'fac') F.forEach((x, i) => items.push({ t: 'fac', f: dmyToTime(x.fecha), i }));
+  items.sort((a, b) => b.f - a.f);
+
+  if (!items.length) {
+    const txt = { todo: 'Todavía no hay movimientos para este cliente.', rep: 'Sin reparaciones registradas.', pre: 'Sin presupuestos guardados. Los nuevos presupuestos quedan guardados acá automáticamente.', fac: 'Sin facturas vinculadas. Se vinculan por CUIT/DNI o al emitir desde Facturar (ARCA).' }[TAB];
+    $('rows').innerHTML = `<div class="nada">${txt}</div>`;
+    return;
+  }
+  $('rows').innerHTML = items.map(it => it.t === 'rep' ? filaRep(R[it.i]) : it.t === 'pre' ? filaPre(P[it.i], it.i) : filaFac(F[it.i], it.i)).join('');
+}
+
+function filaRep(r) {
+  const [el, ec] = ESTADOS[r.status] || [r.status, 'p-gry'];
+  const pag = (r.payment || 'pending') === 'paid' ? `<span class="pill p-grn">Pagado${r.paidDate ? ' ' + esc(r.paidDate) : ''}</span>` : (r.status !== 'cancelled' ? '<span class="pill p-red">Pendiente de pago</span>' : '');
+  return `<div class="row">
+    <div class="rh" onclick="this.parentNode.classList.toggle('open')">
+      <div class="tipo rep">🔧</div>
+      <div class="rt"><b>${esc(r.device)} — ${esc(r.issue)}</b><span>${esc(r.code)} <span class="pill ${ec}">${esc(el)}</span>${pag}</span></div>
+      <div class="ra"><b>${esc(r.cost || 'A cotizar')}</b><span>${esc(r.date)}</span></div>
+    </div>
+    <div class="rd">
+      <p><b>Código:</b> ${esc(r.code)} &nbsp; <b>Equipo:</b> ${esc(r.device)} (${esc(r.type)})</p>
+      <p style="margin-top:4px"><b>Falla:</b> ${esc(r.issue)}</p>
+      ${r.diagnosis ? `<p style="margin-top:4px"><b>Diagnóstico:</b> ${esc(r.diagnosis)}</p>` : ''}
+      ${r.resolution ? `<p style="margin-top:4px"><b>Resolución:</b> ${esc(r.resolution)}</p>` : ''}
+      <div class="acts"><button class="ab" onclick="navigator.clipboard.writeText('${esc(r.code)}').then(()=>aviso('Código copiado: ${esc(r.code)}'))">📋 Copiar código</button><a class="ab" href="/seguimiento" target="_blank">🔎 Seguimiento público</a></div>
+    </div>
+  </div>`;
+}
+
+function tablaItems(items) {
+  const it = itemsNorm(items);
+  if (!it.length) return '<p style="color:var(--g500)">Sin detalle de ítems.</p>';
+  return `<table><thead><tr><th>Descripción</th><th class="r">Cant.</th><th class="r">P. unit.</th><th class="r">Subtotal</th></tr></thead><tbody>
+    ${it.map(x => `<tr><td>${esc(x.d)}</td><td class="r">${x.q}</td><td class="r">$${money2(x.p)}</td><td class="r">$${money2(x.q * x.p)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function filaPre(p, i) {
+  return `<div class="row">
+    <div class="rh" onclick="this.parentNode.classList.toggle('open')">
+      <div class="tipo pre">📄</div>
+      <div class="rt"><b>Presupuesto ${esc(p.numero)}</b><span>${itemsNorm(p.items).length} ítem(s)${p.origen === 'dashboard' ? ' · desde reparación' : ''}</span></div>
+      <div class="ra"><b>${money(p.total)}</b><span>${esc(p.fecha)}</span></div>
+    </div>
+    <div class="rd">${tablaItems(p.items)}
+      ${p.notas ? `<p style="margin-top:8px;color:var(--g400)">${esc(p.notas)}</p>` : ''}
+      <div class="acts"><button class="ab o" onclick="reimprimirPresupuesto(${i})">🖨️ Reimprimir</button></div>
+    </div>
+  </div>`;
+}
+
+function filaFac(f, i) {
+  const est = f.resultado === 'A' ? '<span class="pill p-grn">Aprobada</span>' : `<span class="pill p-red">${esc(f.resultado || 'Error')}</span>`;
+  return `<div class="row">
+    <div class="rh" onclick="this.parentNode.classList.toggle('open')">
+      <div class="tipo fac">🧾</div>
+      <div class="rt"><b>Factura C ${esc(f.numero)}</b><span>${f.cae ? 'CAE ' + esc(f.cae) : 'Sin CAE'} ${est}${f.entorno === 'homo' ? '<span class="pill p-yel">Prueba</span>' : ''}</span></div>
+      <div class="ra"><b>${money(f.total)}</b><span>${esc(f.fecha)}</span></div>
+    </div>
+    <div class="rd">${tablaItems(f.items)}
+      <div class="acts"><a class="ab g" href="/facturas.html" target="_blank">🖨️ Reimprimir en Facturas emitidas</a></div>
+    </div>
+  </div>`;
+}
+
+function reimprimirPresupuesto(i) {
+  const p = FICHA.presupuestos[i], c = FICHA.cliente;
+  const it = itemsNorm(p.items);
+  const w = window.open('', '_blank', 'width=850,height=1000');
+  if (!w) return aviso('Permití las ventanas emergentes para reimprimir');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Presupuesto ${esc(p.numero)}</title>
+  <style>body{font-family:Arial,sans-serif;color:#000;max-width:780px;margin:24px auto;padding:0 16px;font-size:13px}
+  .cab{display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:14px}
+  h1{font-size:18px;margin:0}h2{font-size:22px;margin:0;text-align:right}.mut{color:#444;font-size:12px}
+  table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #999;padding:6px 8px}th{background:#eee;text-align:left}
+  .r{text-align:right}.tot{font-size:16px;font-weight:bold;text-align:right;margin-top:12px}.nota{margin-top:16px;font-size:12px;color:#333}
+  .dx{font-size:11px;color:#b91c1c;margin-top:4px;font-weight:bold}.btn{margin-top:20px;padding:10px 16px;font-size:14px;cursor:pointer}@media print{.btn{display:none}}</style></head><body>
+  <div class="cab"><div><h1>${EMISOR.fantasia}</h1><div class="mut">${EMISOR.razonSocial} · CUIT ${EMISOR.cuit}<br>${EMISOR.domicilio} · Tel ${EMISOR.tel}</div></div>
+  <div><h2>PRESUPUESTO</h2><div class="mut" style="text-align:right">N° ${esc(p.numero)}<br>Fecha: ${esc(p.fecha)}</div><div class="dx" style="text-align:right">DOCUMENTO NO VÁLIDO COMO FACTURA</div></div></div>
+  <p><b>Cliente:</b> ${esc(c.name)}${c.phone ? ' &nbsp; <b>Tel:</b> ' + esc(c.phone) : ''}${c.cuit ? ' &nbsp; <b>CUIT:</b> ' + esc(c.cuit) : ''}</p>
+  <table><thead><tr><th>Descripción</th><th class="r">Cant.</th><th class="r">P. unitario</th><th class="r">Subtotal</th></tr></thead><tbody>
+  ${it.map(x => `<tr><td>${esc(x.d)}</td><td class="r">${x.q}</td><td class="r">$ ${money2(x.p)}</td><td class="r">$ ${money2(x.q * x.p)}</td></tr>`).join('')}
+  </tbody></table><div class="tot">TOTAL: $ ${money2(p.total)}</div>
+  ${p.notas ? `<div class="nota">${esc(p.notas)}</div>` : ''}
+  <div class="mut" style="margin-top:8px">Reimpresión desde el historial del cliente.</div>
+  <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button></body></html>`);
+  w.document.close();
+}
+
+function exportarCSV() {
+  const { cliente: c, reparaciones: R, presupuestos: P, facturas: F } = FICHA;
+  const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const filas = [['Tipo', 'Fecha', 'Número', 'Detalle', 'Estado', 'Importe']];
+  R.forEach(r => filas.push(['Reparación', r.date, r.code, r.device + ' — ' + r.issue, (ESTADOS[r.status] || [r.status])[0] + ' / ' + ((r.payment || 'pending') === 'paid' ? 'Pagado' : 'Pendiente'), moneyToNum(r.cost)]));
+  P.forEach(p => filas.push(['Presupuesto', p.fecha, p.numero, itemsNorm(p.items).map(x => x.d).join(' | '), '', p.total]));
+  F.forEach(f => filas.push(['Factura C', f.fecha, f.numero, itemsNorm(f.items).map(x => x.d).join(' | '), f.resultado === 'A' ? 'Aprobada CAE ' + f.cae : f.resultado, f.total]));
+  const csv = '\ufeff' + filas.map(r => r.map(q).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'historial_' + c.name.replace(/[^\w]+/g, '_') + '.csv';
+  a.click();
+}
+
+// ── Nuevo / editar cliente (usa la API existente /api/clients) ──
+function abrirForm(id, nombre) {
+  EDIT = id ? CLIENTES.find(c => c.id === id) || (FICHA && FICHA.cliente && FICHA.cliente.id === id ? FICHA.cliente : null) : null;
+  $('mt').textContent = EDIT ? 'Editar cliente' : 'Nuevo cliente';
+  $('f_name').value = EDIT ? EDIT.name : (nombre || '');
+  $('f_phone').value = EDIT ? EDIT.phone || '' : '';
+  $('f_email').value = EDIT ? EDIT.email || '' : '';
+  $('f_cuit').value = EDIT ? EDIT.cuit || '' : '';
+  $('f_iva').value = EDIT ? EDIT.condIva || '' : '';
+  $('f_address').value = EDIT ? EDIT.address || '' : '';
+  $('mbg').classList.add('on');
+  setTimeout(() => $('f_name').focus(), 50);
+}
+function cerrarForm() { $('mbg').classList.remove('on'); EDIT = null; }
+
+async function guardarCliente() {
+  const body = { name: $('f_name').value.trim(), phone: $('f_phone').value.trim(), email: $('f_email').value.trim(),
+    cuit: $('f_cuit').value.trim(), condIva: $('f_iva').value, address: $('f_address').value.trim() };
+  if (!body.name) return aviso('El nombre es obligatorio');
+  // Aviso de duplicado antes de crear
+  if (!EDIT) {
+    const t = telKey(body.phone), k = dig(body.cuit);
+    const dup = CLIENTES.find(c => (t.length >= 8 && telKey(c.phone) === t) || (k.length >= 7 && dig(c.cuit) === k));
+    if (dup && !confirm(`Ya existe "${dup.name}" con el mismo teléfono o CUIT.\n¿Crear igual un cliente nuevo?`)) return;
+  }
+  $('f_ok').disabled = true;
+  try {
+    const r = await fetch('/api/clients', { method: EDIT ? 'PUT' : 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(EDIT ? { id: EDIT.id, ...body } : body) });
+    if (r.status === 401) return sinAcceso();
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const fichaId = FICHA && FICHA.cliente ? FICHA.cliente.id : null;
+    cerrarForm();
+    aviso('✅ Cliente guardado');
+    await cargar();
+    if (fichaId) abrirFicha(fichaId);
+  } catch (e) { aviso('No se pudo guardar: ' + e.message); }
+  finally { $('f_ok').disabled = false; }
+}
+
+// ── Varios ─────────────────────────────────────────────────
+function aviso(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2800); }
+function toggleSide(on) { $('side').classList.toggle('on', on); $('ovl').classList.toggle('on', on); }
+async function salir() { await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {}); location.href = '/login'; }
+
+cargar();
+</script>
+</body>
+</html>
