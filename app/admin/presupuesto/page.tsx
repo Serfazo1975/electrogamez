@@ -6,7 +6,7 @@
 // ElectroGamez — Página NUEVA. No modifica nada existente.
 // ============================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Item {
   descripcion: string;
@@ -30,6 +30,19 @@ export default function PresupuestoPage() {
   const [validez, setValidez] = useState('7');
   const [notas, setNotas] = useState('Presupuesto válido por 7 días. No incluye repuestos no detallados.');
   const [fotos, setFotos] = useState<string[]>([]);
+  // NUEVO: datos opcionales para vincular el presupuesto al cliente
+  const [clienteId, setClienteId] = useState('');
+  const [cuitCliente, setCuitCliente] = useState('');
+  const [guardado, setGuardado] = useState('');
+
+  // NUEVO: si se abre desde el historial (/admin/presupuesto?id=..&cliente=..&tel=..&cuit=..) se completa solo
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('cliente')) setCliente(q.get('cliente') || '');
+    if (q.get('tel')) setTelefono(q.get('tel') || '');
+    if (q.get('id')) setClienteId(q.get('id') || '');
+    if (q.get('cuit')) setCuitCliente(q.get('cuit') || '');
+  }, []);
 
   const total = items.reduce((s, i) => s + (Number(i.cantidad) || 0) * (Number(i.precioUnitario) || 0), 0);
 
@@ -77,6 +90,18 @@ export default function PresupuestoPage() {
     if (!w) return;
     const numero = nroPresupuesto();
     const fecha = new Date().toLocaleDateString('es-AR');
+
+    // NUEVO: resguardar el presupuesto en el historial del cliente (no bloquea la impresión)
+    fetch('/api/historial', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({
+        tipo: 'presupuesto', numero, clienteId: clienteId || undefined,
+        nombre: cliente || 'Consumidor Final', telefono, cuit: cuitCliente,
+        total: itemsValidos.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0),
+        items: itemsValidos, notas, extra: { origen: 'presupuesto', validez, fotos: fotos.length },
+      }),
+    }).then(r => setGuardado(r.ok ? `✅ ${numero} guardado en el historial del cliente` : '⚠️ Se imprimió pero no se pudo guardar en el historial'))
+      .catch(() => setGuardado('⚠️ Se imprimió pero no se pudo guardar en el historial'));
 
     const filas = itemsValidos.map((it) =>
       `<tr>
@@ -211,6 +236,7 @@ export default function PresupuestoPage() {
         <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a' }}>TOTAL: $ {formatMoney(total)}</div>
         <button onClick={imprimir} style={btnPrincipal}>📄 Generar presupuesto</button>
       </div>
+      {guardado && <p style={{ fontSize: 13, margin: '0 0 12px', color: guardado.startsWith('✅') ? '#15803d' : '#b45309' }}>{guardado}</p>}
 
       <a href="/dashboard" style={{ color: '#0369a1', fontSize: 14 }}>← Volver al panel</a>
     </div>
