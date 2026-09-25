@@ -151,6 +151,8 @@ const APP_CATEGORIAS = ['Utilidades', 'Seguridad', 'Multimedia', 'Juegos', 'Driv
 export default function DashboardPage() {
   const [tab, setTab] = useState<Tab>('resumen')
   const [search, setSearch] = useState('')
+  // NUEVO: búsqueda de clientes (independiente de la de reparaciones)
+  const [clientSearch, setClientSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [repairs, setRepairs] = useState<Repair[]>(INITIAL_REPAIRS)
@@ -173,6 +175,14 @@ export default function DashboardPage() {
       })
       .catch(() => { /* sin base: se mantienen los datos de ejemplo (modo local) */ })
     return () => { active = false }
+  }, [])
+
+  // NUEVO: abrir una pestaña directo desde un enlace (/dashboard?tab=clientes&q=marcos)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const t = q.get('tab')
+    if (t && ['resumen', 'reparaciones', 'clientes', 'inventario', 'descargas'].includes(t)) setTab(t as Tab)
+    if (q.get('q')) { setClientSearch(q.get('q') || ''); setSearch(q.get('q') || '') }
   }, [])
 
   // Apps / Descargas (guardadas en la base de datos → visibles para todos)
@@ -265,6 +275,19 @@ export default function DashboardPage() {
         ? 'Presupuesto válido por 7 días. No incluye repuestos no detallados.'
         : undefined,
     })
+    // NUEVO: el presupuesto queda resguardado en el historial del cliente
+    if (tipo === 'presupuesto' && dbOn) {
+      fetch('/api/historial', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'presupuesto', numero: r.code, clienteId: cliente?.id, nombre: r.client,
+          telefono: cliente?.phone, cuit: cliente?.cuit, total: costNum,
+          items: [{ descripcion: `Reparación ${r.device} — ${r.issue}`, cantidad: 1, precioUnitario: costNum }],
+          notas: 'Presupuesto válido por 7 días. No incluye repuestos no detallados.',
+          extra: { origen: 'dashboard', reparacion: r.code },
+        }),
+      }).catch(() => {})
+    }
   }
 
   // Formulario nueva reparación
@@ -294,6 +317,17 @@ export default function DashboardPage() {
     r.code.toLowerCase().includes(search.toLowerCase()) ||
     r.device.toLowerCase().includes(search.toLowerCase())
   ).filter(r => paymentFilter === 'all' || (r.payment ?? 'pending') === paymentFilter)
+
+  // NUEVO: filtro de clientes por nombre, teléfono, email, CUIT o dirección (ignora tildes y mayúsculas)
+  const normTxt = (v?: string) => (v ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const filteredClients = clients.filter(c => {
+    const q = normTxt(clientSearch).trim()
+    if (!q) return true
+    const qDig = q.replace(/\D/g, '')
+    const texto = normTxt([c.name, c.email, c.address, c.condIva].join(' '))
+    const digitos = ((c.phone ?? '') + ' ' + (c.cuit ?? '')).replace(/\D/g, '')
+    return q.split(/\s+/).every(w => texto.includes(w)) || (qDig.length >= 3 && digitos.includes(qDig))
+  })
 
   // Pendiente de cobro (no cuenta las canceladas)
   const unpaid = repairs.filter(r => (r.payment ?? 'pending') === 'pending' && r.status !== 'cancelled')
@@ -547,6 +581,10 @@ export default function DashboardPage() {
           <a href="/admin/presupuesto"
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-orange-400 hover:text-white hover:bg-orange-600 transition-colors">
             <span className="text-lg">📄</span> Presupuesto
+          </a>
+          <a href="/clientes.html"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-violet-400 hover:text-white hover:bg-violet-600 transition-colors">
+            <span className="text-lg">🗂️</span> Historial clientes
           </a>
           <a href="/tienda?admin=1"
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-cyan-400 hover:text-white hover:bg-cyan-600 transition-colors">
@@ -806,7 +844,8 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <input type="text" placeholder="Buscar clientes..."
+                  <input type="text" placeholder="Buscar clientes por nombre, teléfono o CUIT..."
+                    value={clientSearch} onChange={e => setClientSearch(e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
                 </div>
                 <button onClick={() => openNewClient()}
@@ -815,8 +854,15 @@ export default function DashboardPage() {
                 </button>
               </div>
 
+              {clientSearch.trim() && (
+                <p className="text-xs text-gray-400">
+                  {filteredClients.length} de {clients.length} clientes
+                  <button onClick={() => setClientSearch('')} className="ml-2 text-blue-400 hover:text-blue-300">limpiar</button>
+                </p>
+              )}
+
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {clients.map(c => (
+                {filteredClients.map(c => (
                   <div key={c.id ?? c.phone ?? c.name} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-5 hover:border-gray-600 transition-colors">
                     <div className="flex items-start justify-between mb-3">
                       <div className="w-10 h-10 bg-blue-600/30 rounded-full flex items-center justify-center text-blue-400 font-semibold">{c.name[0]}</div>
@@ -832,12 +878,19 @@ export default function DashboardPage() {
                     {c.condIva && <p className="text-gray-400 text-xs mt-0.5">{c.condIva}</p>}
                     {c.address && <p className="text-gray-500 text-xs mt-0.5 truncate">📍 {c.address}</p>}
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700 text-xs text-gray-400">
-                      <span>{c.repairs} reparación{c.repairs !== 1 ? 'es' : ''}</span>
+                      <span>{c.repairs} {c.repairs === 1 ? 'reparación' : 'reparaciones'}</span>
                       <span>Última: {c.lastRepair}</span>
                     </div>
+                    {c.id && (
+                      <a href={`/clientes.html?id=${encodeURIComponent(c.id)}`}
+                        className="mt-3 flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-medium text-cyan-400 bg-cyan-600/10 hover:bg-cyan-600/20 transition-colors">
+                        <ClipboardList className="w-4 h-4" /> Historial: reparaciones, presupuestos y facturas
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
+              {filteredClients.length === 0 && <div className="text-center py-12 text-gray-500">No se encontraron clientes con “{clientSearch}”</div>}
             </div>
           )}
 
