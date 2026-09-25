@@ -22,6 +22,8 @@ export const config = {
     '/dashboard/:path*', '/admin/:path*', '/facturas.html',
     // ── NUEVO ──
     '/clientes.html',
+    '/facturas', '/clientes',   // mismas páginas sin el .html
+
     '/api/clients/:path*',
     '/api/repairs/:path*',
     '/api/parts/:path*',
