@@ -195,6 +195,19 @@ export default function FacturacionPage() {
       });
       const data = await res.json();
       if (data.ok) {
+        // NUEVO: vincular la factura al cliente para verla en su historial (no bloquea)
+        fetch('/api/historial', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({
+            tipo: 'factura',
+            numero: `${String(data.ptoVta ?? 1).padStart(5, '0')}-${String(data.cbteNro).padStart(8, '0')}`,
+            nombre: nombreCliente || 'Consumidor Final',
+            cuit: docTipo === 99 ? '' : docNro,
+            total: data.total ?? itemsValidos.reduce((s, i) => s + i.cantidad * i.precioUnitario, 0),
+            items: itemsValidos,
+            extra: { origen: 'facturacion', cae: data.cae, caeVto: data.caeVto, condIva: condIvaCliente, direccion: direccionCliente },
+          }),
+        }).catch(() => {});
         setResultado({ ...data, itemsEmitidos: itemsValidos, clienteNombre: nombreCliente || 'Consumidor Final', condIvaCliente: condIvaCliente || 'Consumidor Final', direccionCliente });
         setItems([{ descripcion: '', cantidad: 1, precioUnitario: 0 }]);
         setDocNro(''); setNombreCliente(''); setCondIvaCliente(''); setDireccionCliente('');
