@@ -77,7 +77,8 @@ export default function FacturacionPage() {
     setNombreCliente(cl.name || '');
     setCondIvaCliente(cl.condIva || '');
     setDireccionCliente(cl.address || '');
-    if (cl.cuit) { setDocTipo(80); setDocNro(cl.cuit); }
+    // CUIT (11 dígitos) → tipo CUIT; si guardaste un DNI (7-8 dígitos) → tipo DNI
+    if (cl.cuit) { const d = String(cl.cuit).replace(/\D/g, ''); setDocTipo(d.length === 11 ? 80 : 96); setDocNro(d); }
     setSugerencias([]);
     setShowSugerencias(false);
   }
@@ -93,16 +94,78 @@ export default function FacturacionPage() {
     setShowSugerencias(filtrado.length > 0);
   }
 
-  // Buscar cliente por CUIT en la base de datos
-  async function buscarPorCuit(cuit: string) {
+  // NUEVO: resultado de la búsqueda por documento (base local → ARCA online)
+  const [infoBusqueda, setInfoBusqueda] = useState<{ tipo: 'local' | 'arca' | 'nada' | 'error'; texto: string } | null>(null);
+  const [datosArca, setDatosArca] = useState<any>(null);
+  const [ultimoBuscado, setUltimoBuscado] = useState('');
+
+  // Buscar cliente por CUIT o DNI: 1) base de datos local  2) si no está, padrón de ARCA
+  async function buscarPorCuit(cuit: string, forzar = false) {
     const limpio = cuit.replace(/[^0-9]/g, '');
     if (limpio.length < 7) return;
+    if (!forzar && limpio === ultimoBuscado) return; // evita buscar dos veces lo mismo
+    setUltimoBuscado(limpio);
     setBuscandoCuit(true);
-    const encontrado = clientesDb.find((c: any) => c.cuit === limpio);
+    setInfoBusqueda(null);
+    setDatosArca(null);
+
+    // 1) Base local: CUIT exacto, DNI guardado, o DNI contenido en un CUIT (20-XXXXXXXX-9)
+    const dni = limpio.length <= 8 ? limpio.padStart(8, '0') : '';
+    const encontrado = clientesDb.find((c: any) => {
+      const cc = String(c.cuit || '').replace(/\D/g, '');
+      if (!cc) return false;
+      if (cc === limpio) return true;
+      if (dni && cc.length === 11 && cc.slice(2, 10) === dni) return true;
+      if (dni && cc.length <= 8 && cc.padStart(8, '0') === dni) return true;
+      if (limpio.length === 11 && cc.length <= 8 && cc.padStart(8, '0') === limpio.slice(2, 10)) return true;
+      return false;
+    });
     if (encontrado) {
       seleccionarCliente(encontrado);
+      setInfoBusqueda({ tipo: 'local', texto: `✅ Cliente encontrado en tu base: ${encontrado.name}` });
+      setBuscandoCuit(false);
+      return;
+    }
+
+    // 2) No está en la base → buscar online en ARCA
+    try {
+      const res = await fetch('/api/padron?doc=' + limpio, { credentials: 'include', cache: 'no-store' });
+      const data = await res.json();
+      if (data.ok && data.datos) {
+        const d = data.datos;
+        setNombreCliente(d.nombre || '');
+        if (d.condIva) setCondIvaCliente(d.condIva);
+        if (d.direccion) setDireccionCliente(d.direccion);
+        // Si es inscripto (Monotributo / RI / Exento) se factura a su CUIT
+        if (d.cuit && d.condIva && d.condIva !== 'Consumidor Final') { setDocTipo(80); setDocNro(d.cuit); setUltimoBuscado(d.cuit); }
+        setDatosArca(d);
+        setInfoBusqueda({ tipo: 'arca', texto: `🌐 Datos traídos de ARCA (CUIT ${d.cuit}). No estaba en tu base de clientes.` });
+      } else {
+        const extra = Array.isArray(data.avisos) && data.avisos.length ? ' — ' + data.avisos.join(' ') : '';
+        setInfoBusqueda({ tipo: data.avisos?.length ? 'error' : 'nada', texto: `No está en tu base ni se encontró en ARCA. Completá los datos a mano.${extra}` });
+      }
+    } catch {
+      setInfoBusqueda({ tipo: 'error', texto: 'No está en tu base y no se pudo consultar ARCA (sin conexión). Completá los datos a mano.' });
     }
     setBuscandoCuit(false);
+  }
+
+  // NUEVO: guardar en clientes los datos traídos de ARCA
+  async function guardarClienteArca() {
+    if (!datosArca) return;
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+        body: JSON.stringify({ name: nombreCliente || datosArca.nombre, cuit: datosArca.cuit, condIva: condIvaCliente || datosArca.condIva, address: direccionCliente || datosArca.direccion }),
+      });
+      if (!res.ok) throw new Error();
+      const nuevo = await res.json();
+      setClientesDb(prev => [nuevo, ...prev]);
+      setDatosArca(null);
+      setInfoBusqueda({ tipo: 'local', texto: `💾 ${nuevo.name} guardado en tu base de clientes` });
+    } catch {
+      setInfoBusqueda({ tipo: 'error', texto: 'No se pudo guardar el cliente.' });
+    }
   }
   const [concepto, setConcepto] = useState(1);
   const [servDesde, setServDesde] = useState('');
@@ -185,7 +248,7 @@ export default function FacturacionPage() {
         body: JSON.stringify({
           docTipo,
           docNro: docTipo === 99 ? 0 : Number(docNro),
-          condIvaReceptor: 5,
+          condIvaReceptor: ({ 'Responsable Inscripto': 1, 'Exento': 4, 'Consumidor Final': 5, 'Monotributista': 6 } as Record<string, number>)[condIvaCliente] ?? 5,
           concepto,
           fechaServDesde: requiereFechas ? aFechaAfip(servDesde) : undefined,
           fechaServHasta: requiereFechas ? aFechaAfip(servHasta) : undefined,
@@ -210,7 +273,7 @@ export default function FacturacionPage() {
         }).catch(() => {});
         setResultado({ ...data, itemsEmitidos: itemsValidos, clienteNombre: nombreCliente || 'Consumidor Final', condIvaCliente: condIvaCliente || 'Consumidor Final', direccionCliente });
         setItems([{ descripcion: '', cantidad: 1, precioUnitario: 0 }]);
-        setDocNro(''); setNombreCliente(''); setCondIvaCliente(''); setDireccionCliente('');
+        setDocNro(''); setNombreCliente(''); setCondIvaCliente(''); setDireccionCliente(''); setInfoBusqueda(null); setDatosArca(null); setUltimoBuscado('');
         cargarFacturas();
       } else {
         setError((data.error || 'ARCA rechazó el comprobante') + (data.observaciones ? ' — ' + data.observaciones : ''));
@@ -436,8 +499,9 @@ export default function FacturacionPage() {
             <label style={lbl}>N° de documento</label>
             <input style={{ ...inp, background: docTipo === 99 ? '#f1f5f9' : '#fff' }} value={docNro}
               onChange={(e) => setDocNro(e.target.value)} disabled={docTipo === 99}
-              onBlur={() => { if (docTipo === 80 && docNro.trim()) buscarPorCuit(docNro) }}
-              placeholder={docTipo === 99 ? 'No requerido' : 'Ej: 20214293286'} />
+              onBlur={() => { if (docTipo !== 99 && docNro.trim()) buscarPorCuit(docNro) }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && docTipo !== 99 && docNro.trim()) { e.preventDefault(); buscarPorCuit(docNro, true) } }}
+              placeholder={docTipo === 99 ? 'No requerido' : docTipo === 96 ? 'Ej: 21429328' : 'Ej: 20214293286'} />
           </div>
           <div style={{ position: 'relative' }}>
             <label style={lbl}>Nombre / Razón Social</label>
@@ -477,11 +541,24 @@ export default function FacturacionPage() {
             <input style={inp} value={direccionCliente} onChange={(e) => setDireccionCliente(e.target.value)} placeholder="Calle 123, Ciudad" />
           </div>
         </div>
-        {docTipo === 80 && docNro.length >= 7 && (
-          <button type="button" onClick={() => buscarPorCuit(docNro)}
-            style={{ marginTop: 10, background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            🔍 Buscar cliente por CUIT
+        {docTipo !== 99 && docNro.replace(/\D/g, '').length >= 7 && (
+          <button type="button" onClick={() => buscarPorCuit(docNro, true)} disabled={buscandoCuit}
+            style={{ marginTop: 10, background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: buscandoCuit ? 0.6 : 1 }}>
+            {buscandoCuit ? '⏳ Buscando…' : `🔍 Buscar ${docTipo === 96 ? 'DNI' : 'CUIT'} (mis clientes + ARCA)`}
           </button>
+        )}
+        {infoBusqueda && (
+          <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 8, fontSize: 13, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
+            background: infoBusqueda.tipo === 'local' ? '#dcfce7' : infoBusqueda.tipo === 'arca' ? '#e0f2fe' : infoBusqueda.tipo === 'error' ? '#fef3c7' : '#f1f5f9',
+            color: infoBusqueda.tipo === 'local' ? '#166534' : infoBusqueda.tipo === 'arca' ? '#075985' : infoBusqueda.tipo === 'error' ? '#92400e' : '#475569' }}>
+            <span style={{ flex: 1 }}>{infoBusqueda.texto}</span>
+            {datosArca && (
+              <button type="button" onClick={guardarClienteArca}
+                style={{ background: '#0369a1', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                💾 Guardar en mis clientes
+              </button>
+            )}
+          </div>
         )}
       </div>
 
