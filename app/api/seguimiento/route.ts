@@ -19,6 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
   waiting_parts: 'Esperando repuestos',
   in_progress:   'En reparación',
   ready:         'Listo para retirar',
+  completed:     'Completado',
   delivered:     'Entregado',
   cancelled:     'Cancelado',
 }
@@ -29,6 +30,7 @@ const STATUS_ORDER = [
   'waiting_parts',
   'in_progress',
   'ready',
+  'completed',
   'delivered',
 ]
 
