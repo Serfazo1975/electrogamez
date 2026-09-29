@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Monitor, Gamepad2, Laptop, CheckCircle2, Clock, Package, Wrench, Bell, Truck, XCircle } from 'lucide-react'
 
 interface StatusHistoryItem {
@@ -12,19 +12,23 @@ interface StatusHistoryItem {
 interface RepairData {
   trackingCode: string
   deviceType: string
-  deviceBrand: string | null
-  deviceModel: string | null
-  issueDescription: string
+  deviceBrand?: string | null
+  deviceModel?: string | null
+  issueDescription?: string
   status: string
   statusLabel: string
-  priority: string
-  estimatedCost: number | null
-  finalCost: number | null
-  paid: boolean
+  priority?: string
+  estimatedCost?: number | null
+  finalCost?: number | null
+  paid?: boolean
   receivedAt: string
   estimatedAt: string | null
   completedAt: string | null
-  client: { name: string }
+  client?: { name: string }
+  // NUEVO: el detalle completo solo se muestra verificando el teléfono
+  verificado: boolean
+  requiereTelefono: boolean
+  telIncorrecto: boolean
   statusHistory: StatusHistoryItem[]
   statusOrder: string[]
   statusLabels: Record<string, string>
@@ -60,13 +64,14 @@ const PRIORITY_LABELS: Record<string, string> = {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-CL', {
+  return new Date(iso).toLocaleDateString('es-AR', {
     day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
 
+// Pesos argentinos (antes mostraba pesos chilenos por error)
 function formatCLP(amount: number) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount)
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount)
 }
 
 export default function SeguimientoPage() {
@@ -74,16 +79,18 @@ export default function SeguimientoPage() {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<RepairData | null>(null)
   const [error, setError] = useState('')
+  const [tel, setTel] = useState('')
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    if (!code.trim()) return
+  async function buscar(codigo: string, telefono: string) {
+    if (!codigo.trim()) return
     setLoading(true)
     setError('')
     setData(null)
 
     try {
-      const res = await fetch(`/api/seguimiento?codigo=${encodeURIComponent(code.trim())}`)
+      const qs = new URLSearchParams({ codigo: codigo.trim() })
+      if (telefono.replace(/\D/g, '')) qs.set('tel', telefono.replace(/\D/g, '').slice(-4))
+      const res = await fetch(`/api/seguimiento?${qs}`)
       const json = await res.json()
       if (!res.ok) {
         setError(json.error ?? 'Error al buscar la reparación')
@@ -96,6 +103,18 @@ export default function SeguimientoPage() {
       setLoading(false)
     }
   }
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    buscar(code, tel)
+  }
+
+  // NUEVO: abrir directo desde el link del comprobante (/seguimiento?codigo=EG-2026-0042)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const c = (q.get('codigo') || '').toUpperCase()
+    if (c) { setCode(c); buscar(c, '') }
+  }, [])
 
   const completedSteps = data
     ? data.statusHistory.map((h) => h.status)
@@ -126,16 +145,28 @@ export default function SeguimientoPage() {
         {/* Search box */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold mb-2">¿Cómo va tu equipo?</h1>
-          <p className="text-gray-400">Ingresa el código que te entregamos al dejar tu equipo</p>
+          <p className="text-gray-400">Ingresá el código que te entregamos al dejar tu equipo</p>
         </div>
 
-        <form onSubmit={handleSearch} className="flex gap-2 mb-8">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-8">
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="Ej: EG-2025-0042"
+            placeholder="Ej: EG-2026-0042"
+            aria-label="Código de seguimiento"
             className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono text-lg tracking-wider"
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={4}
+            value={tel}
+            onChange={(e) => setTel(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            placeholder="Últimos 4 del tel."
+            aria-label="Últimos 4 dígitos de tu teléfono"
+            title="Últimos 4 dígitos del teléfono que dejaste al traer el equipo (para ver el detalle y el presupuesto)"
+            className="sm:w-44 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono text-lg tracking-widest text-center"
           />
           <button
             type="submit"
@@ -150,7 +181,7 @@ export default function SeguimientoPage() {
         {error && (
           <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-red-300 text-center">
             {error === 'Reparación no encontrada'
-              ? 'No encontramos ninguna reparación con ese código. Revisa que esté bien escrito o llámanos.'
+              ? 'No encontramos ninguna reparación con ese código. Revisá que esté bien escrito o llamanos.'
               : error}
           </div>
         )}
@@ -167,22 +198,37 @@ export default function SeguimientoPage() {
                   <div>
                     <p className="text-sm text-gray-400">{data.trackingCode}</p>
                     <h2 className="font-semibold text-lg">
-                      {[data.deviceBrand, data.deviceModel].filter(Boolean).join(' ') || 'Dispositivo'}
+                      {[data.deviceBrand, data.deviceModel].filter(Boolean).join(' ') || 'Tu equipo'}
                     </h2>
-                    <p className="text-sm text-gray-400">{data.client.name}</p>
+                    {data.client?.name && <p className="text-sm text-gray-400">{data.client.name}</p>}
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className={`text-xs font-medium ${PRIORITY_COLORS[data.priority]}`}>
-                    Prioridad {PRIORITY_LABELS[data.priority]}
-                  </span>
-                </div>
+                {data.priority && (
+                  <div className="text-right">
+                    <span className={`text-xs font-medium ${PRIORITY_COLORS[data.priority]}`}>
+                      Prioridad {PRIORITY_LABELS[data.priority]}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <p className="text-gray-300 text-sm bg-gray-900/50 rounded-lg px-4 py-3 mb-4">
-                <span className="text-gray-500 text-xs block mb-1">Problema reportado</span>
-                {data.issueDescription}
-              </p>
+              {data.verificado && data.issueDescription && (
+                <p className="text-gray-300 text-sm bg-gray-900/50 rounded-lg px-4 py-3 mb-4">
+                  <span className="text-gray-500 text-xs block mb-1">Problema reportado</span>
+                  {data.issueDescription}
+                </p>
+              )}
+
+              {/* NUEVO: aviso para ver el detalle completo */}
+              {!data.verificado && (
+                <div className={`text-sm rounded-lg px-4 py-3 mb-4 border ${data.telIncorrecto ? 'bg-yellow-900/30 border-yellow-700 text-yellow-200' : 'bg-gray-900/50 border-gray-700 text-gray-300'}`}>
+                  {data.telIncorrecto
+                    ? '⚠️ Los últimos 4 dígitos no coinciden con el teléfono registrado. Revisalos o escribinos por WhatsApp.'
+                    : data.requiereTelefono
+                    ? '🔒 Para ver el detalle, la falla y el presupuesto, ingresá los últimos 4 dígitos de tu teléfono y tocá Buscar.'
+                    : '🔒 Por tu privacidad solo mostramos el estado. Para más detalle escribinos por WhatsApp.'}
+                </div>
+              )}
 
               {/* Estado actual destacado */}
               <div className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
@@ -197,7 +243,7 @@ export default function SeguimientoPage() {
                 {STATUS_ICONS[data.status]}
                 <span className="font-semibold">{data.statusLabel}</span>
                 {data.status === 'ready' && (
-                  <span className="ml-auto text-sm">¡Ya puedes venir a buscarlo!</span>
+                  <span className="ml-auto text-sm">¡Ya podés venir a buscarlo!</span>
                 )}
               </div>
             </div>
@@ -260,23 +306,23 @@ export default function SeguimientoPage() {
             </div>
 
             {/* Costos */}
-            {(data.estimatedCost !== null || data.finalCost !== null) && (
+            {data.verificado && ((data.estimatedCost ?? null) !== null || (data.finalCost ?? null) !== null) && (
               <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-6">
                 <h3 className="font-semibold mb-4 text-gray-200">Presupuesto</h3>
                 <div className="space-y-2">
-                  {data.estimatedCost !== null && (
+                  {data.estimatedCost != null && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Costo estimado</span>
                       <span>{formatCLP(data.estimatedCost)}</span>
                     </div>
                   )}
-                  {data.finalCost !== null && (
+                  {data.finalCost != null && (
                     <div className="flex justify-between text-sm font-semibold border-t border-gray-700 pt-2 mt-2">
                       <span>Total</span>
                       <span className="text-cyan-400">{formatCLP(data.finalCost)}</span>
                     </div>
                   )}
-                  {data.finalCost !== null && (
+                  {data.finalCost != null && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Estado pago</span>
                       <span className={data.paid ? 'text-green-400' : 'text-yellow-400'}>
@@ -313,13 +359,13 @@ export default function SeguimientoPage() {
 
             {/* Contacto */}
             <div className="text-center text-gray-500 text-sm">
-              ¿Tienes dudas?{' '}
-              <a href="tel:+56900000000" className="text-blue-400 hover:text-blue-300 transition-colors">
+              ¿Tenés dudas?{' '}
+              <a href="tel:+542966383251" className="text-blue-400 hover:text-blue-300 transition-colors">
                 Llámanos
               </a>{' '}
               o escríbenos por{' '}
               <a
-                href="https://wa.me/56900000000"
+                href="https://wa.me/5491156975880"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-400 hover:text-green-300 transition-colors"

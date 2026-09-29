@@ -12,9 +12,9 @@ const NEG = {
   domicilio:   'Los Pozos 458, Río Gallegos, Santa Cruz',
   whatsapp:    '+54 9 11 5697 5880',
   email:       'sergiofazzini@gmail.com',
-  web:         'electrogamez.netlify.app',
+  web:         'electrogamez.ar',
 }
-const SEGUIMIENTO_URL = 'https://electrogamez.netlify.app/seguimiento'
+const SEGUIMIENTO_URL = 'https://electrogamez.ar/seguimiento'
 
 const DEVICE_LABEL: Record<string, string> = {
   laptop: 'Notebook / Laptop',
@@ -52,8 +52,8 @@ function buildMessage(d: ReceiptData) {
     d.cost ? `💲 Presupuesto estimado: ${d.cost}` : '',
     '',
     `Seguí el estado de tu reparación en:`,
-    `${SEGUIMIENTO_URL}`,
-    `Ingresá tu código: *${d.code}*`,
+    `${SEGUIMIENTO_URL}?codigo=${encodeURIComponent(d.code)}`,
+    `Código: *${d.code}* — para ver el detalle y el presupuesto ingresá los últimos 4 dígitos de tu teléfono.`,
     '',
     `${NEG.whatsapp}`,
   ].filter(Boolean).join('\n')
