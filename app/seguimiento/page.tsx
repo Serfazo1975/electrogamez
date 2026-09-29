@@ -47,6 +47,7 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
   waiting_parts: <Package className="w-4 h-4" />,
   in_progress:   <Wrench className="w-4 h-4" />,
   ready:         <CheckCircle2 className="w-4 h-4" />,
+  completed:     <CheckCircle2 className="w-4 h-4" />,
   delivered:     <Truck className="w-4 h-4" />,
   cancelled:     <XCircle className="w-4 h-4" />,
 }
@@ -232,7 +233,7 @@ export default function SeguimientoPage() {
 
               {/* Estado actual destacado */}
               <div className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
-                data.status === 'ready'
+                data.status === 'ready' || data.status === 'completed'
                   ? 'bg-green-900/40 border border-green-700 text-green-300'
                   : data.status === 'delivered'
                   ? 'bg-gray-700/40 border border-gray-600 text-gray-300'
