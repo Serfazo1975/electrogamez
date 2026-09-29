@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { updateDescarga, deleteDescarga } from '@/lib/descargas'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session'
 
@@ -14,6 +15,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const d = await req.json()
   try {
     await updateDescarga(params.id, d)
+    revalidatePath('/')
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'No se pudo actualizar' }, { status: 500 })
@@ -25,6 +27,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (!(await isAdmin(req))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   try {
     await deleteDescarga(params.id)
+    revalidatePath('/')
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'No se pudo eliminar' }, { status: 500 })

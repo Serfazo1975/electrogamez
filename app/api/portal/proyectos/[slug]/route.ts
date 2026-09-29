@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { proyectoPublico } from '@/lib/portal-public'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,5 +11,5 @@ export async function GET(req: NextRequest, { params }: { params: { slug: string
   })
   if (!project) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
   await prisma.project.update({ where: { id: project.id }, data: { views: { increment: 1 } } })
-  return NextResponse.json(project)
+  return NextResponse.json(proyectoPublico(project))
 }

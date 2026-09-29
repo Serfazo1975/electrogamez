@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { proyectoPublico } from '@/lib/portal-public'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,5 +26,5 @@ export async function GET(req: NextRequest) {
     }),
   ])
 
-  return NextResponse.json({ projects, total, page, pages: Math.ceil(total / limit) })
+  return NextResponse.json({ projects: projects.map(proyectoPublico), total, page, pages: Math.ceil(total / limit) })
 }

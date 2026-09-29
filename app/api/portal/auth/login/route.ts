@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -10,15 +11,18 @@ export async function POST(req: NextRequest) {
     where: { OR: [{ email }, { username: email }], active: true },
   })
   if (!user || !(await bcrypt.compare(password, user.password))) {
+    await new Promise((r) => setTimeout(r, 700)) // frena intentos por fuerza bruta
     return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 })
   }
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   const session = await prisma.portalSession.create({
-    data: { userId: user.id, expiresAt },
+    // Token aleatorio fuerte (antes: cuid, que es más fácil de adivinar)
+    data: { userId: user.id, expiresAt, token: randomBytes(32).toString('hex') },
   })
   const res = NextResponse.json({ ok: true, username: user.username, role: user.role })
   res.cookies.set('eg_portal_session', session.token, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // solo por HTTPS
     path: '/',
     expires: expiresAt,
     sameSite: 'lax',

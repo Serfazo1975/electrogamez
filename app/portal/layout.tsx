@@ -109,11 +109,11 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               </div>
               <span className="font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">ElectroGamez</span>
             </a>
-            <span className="text-gray-600">|</span>
-            <a href="/portal" className="text-sm text-gray-400 hover:text-white transition-colors">Portal</a>
+            <span className="hidden sm:inline text-gray-600">|</span>
+            <a href="/portal" className="hidden sm:inline text-sm text-gray-400 hover:text-white transition-colors">Portal</a>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <a
               href="/"
               className="flex items-center gap-1.5 border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-sm transition-all"
@@ -133,8 +133,8 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
                 </button>
               </>
             ) : (
-              <a href="/portal/login" className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                <LogIn className="w-4 h-4" /> Ingresar
+              <a href="/portal/login" className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 px-3 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                <LogIn className="w-4 h-4" /> <span className="hidden sm:inline">Ingresar</span>
               </a>
             )}
           </div>
