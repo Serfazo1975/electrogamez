@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
   // Para verificar en Google Search Console y Bing Webmaster (pegar el código en Netlify → variables)
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || 'pKiFnwiABYpwxBo31AdXqiZt47UI6ZE9Jmh9YKk-T_Q',
     other: process.env.NEXT_PUBLIC_BING_VERIFICATION ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION } : undefined,
   },
 }
