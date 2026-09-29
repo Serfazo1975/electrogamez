@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { listDescargas, createDescarga } from '@/lib/descargas'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session'
 
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const res = await createDescarga(d)
+    revalidatePath('/')
     return NextResponse.json(res)
   } catch {
     return NextResponse.json({ error: 'No se pudo guardar' }, { status: 500 })

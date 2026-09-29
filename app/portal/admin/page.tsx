@@ -208,7 +208,7 @@ export default function AdminPage() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-gray-400 block mb-1.5">URL Thumbnail (opcional)</label>
+                <label className="text-xs text-gray-400 block mb-1.5">URL Thumbnail (opcional) — debe ser una imagen .jpg/.png/.webp; los links de OneDrive o de páginas no se muestran</label>
                 <input
                   value={projForm.thumbnail}
                   onChange={e => setProjForm({ ...projForm, thumbnail: e.target.value })}

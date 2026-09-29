@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers';
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 
@@ -66,6 +67,7 @@ export async function PUT(req: NextRequest) {
       `UPDATE precios_web SET datos = $1::jsonb WHERE id = 1`,
       JSON.stringify(precios)
     );
+    revalidatePath('/') // la portada muestra el precio nuevo al instante
     return NextResponse.json({ ok: true, precios });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

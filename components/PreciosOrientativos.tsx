@@ -19,8 +19,9 @@ const FALLBACK: Precio[] = [
   { id: 6, servicio: 'Soporte técnico empresas', precio: 'A convenir', nota: 'Servidores, redes, UPS', icono: '🏢' },
 ];
 
-export default function PreciosOrientativos() {
-  const [precios, setPrecios] = useState<Precio[]>(FALLBACK);
+// initial: precios reales que manda el servidor (los ve Google). Si no llegan, se usan los de ejemplo.
+export default function PreciosOrientativos({ initial }: { initial?: Precio[] } = {}) {
+  const [precios, setPrecios] = useState<Precio[]>(initial && initial.length ? initial : FALLBACK);
 
   useEffect(() => {
     fetch('/api/precios')
