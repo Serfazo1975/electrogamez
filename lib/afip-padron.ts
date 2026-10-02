@@ -13,6 +13,7 @@
 
 import forge from 'node-forge';
 import { prisma } from '@/lib/prisma';
+import { afipFetch } from '@/lib/afip-http'; // conexión compatible con ARCA (Node 22)
 
 const ES_PROD = (process.env.AFIP_PADRON_ENV || process.env.AFIP_ENV) === 'prod';
 const CUIT_EMISOR = process.env.AFIP_CUIT || '';
@@ -120,7 +121,7 @@ async function ticket(servicio: string): Promise<{ token: string; sign: string }
   p7.sign();
   const cms = forge.util.encode64(forge.asn1.toDer(p7.toAsn1()).getBytes());
 
-  const res = await fetch(URL_WSAA, {
+  const res = await afipFetch(URL_WSAA, {
     method: 'POST',
     headers: { 'Content-Type': 'text/xml; charset=utf-8', SOAPAction: '' },
     body: `<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsaa="http://wsaa.view.sua.dvadac.desein.afip.gov"><soapenv:Header/><soapenv:Body><wsaa:loginCms><wsaa:in0>${cms}</wsaa:in0></wsaa:loginCms></soapenv:Body></soapenv:Envelope>`,
@@ -146,7 +147,7 @@ async function ticket(servicio: string): Promise<{ token: string; sign: string }
 
 async function soap(url: string, ns: string, metodo: string, params: Record<string, string>) {
   const cuerpo = Object.entries(params).map(([k, v]) => `<${k}>${v}</${k}>`).join('');
-  const res = await fetch(url, {
+  const res = await afipFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'text/xml; charset=utf-8', SOAPAction: '' },
     body: `<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:a="${ns}"><soapenv:Header/><soapenv:Body><a:${metodo}>${cuerpo}</a:${metodo}></soapenv:Body></soapenv:Envelope>`,

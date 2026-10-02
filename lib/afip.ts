@@ -14,6 +14,7 @@
 
 import forge from 'node-forge';
 import { prisma } from '@/lib/prisma'; // ⚠️ Ajustar si tu import de Prisma es distinto
+import { afipFetch } from '@/lib/afip-http'; // conexión compatible con ARCA (Node 22)
 
 // ------------------------------------------------------------
 // URLs según entorno
@@ -155,7 +156,7 @@ async function obtenerTA(): Promise<{ token: string; sign: string }> {
   </soapenv:Body>
 </soapenv:Envelope>`;
 
-  const res = await fetch(URL_WSAA, {
+  const res = await afipFetch(URL_WSAA, {
     method: 'POST',
     headers: { 'Content-Type': 'text/xml; charset=utf-8', SOAPAction: '' },
     body: soap,
@@ -188,7 +189,7 @@ async function obtenerTA(): Promise<{ token: string; sign: string }> {
 // WSFE: helpers SOAP
 // ------------------------------------------------------------
 async function llamarWSFE(metodo: string, cuerpo: string): Promise<string> {
-  const res = await fetch(URL_WSFE, {
+  const res = await afipFetch(URL_WSFE, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
@@ -198,7 +199,7 @@ async function llamarWSFE(metodo: string, cuerpo: string): Promise<string> {
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ar="http://ar.gov.afip.dif.FEV1/">
   <soap:Body>${cuerpo}</soap:Body>
 </soap:Envelope>`,
-  });
+  }, metodo === 'FECAESolicitar' ? 1 : 3); // la emisión no se reintenta (evita duplicados)
   return res.text();
 }
 
