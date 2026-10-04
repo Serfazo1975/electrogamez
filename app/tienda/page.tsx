@@ -23,6 +23,7 @@ interface Producto {
   stock: boolean
   orden: number
   fechaAgregado: string
+  destacado?: boolean
 }
 interface CartItem { id: string; qty: number }
 type Draft = Omit<Producto, 'fechaAgregado' | 'orden'> & { orden?: number }
@@ -36,7 +37,7 @@ function normalizarTel(tel: string): string {
   return '549' + n
 }
 
-const blankDraft = (): Draft => ({ id: '', nombre: '', descripcion: '', precio: 0, categoria: '', imagen: '', mpLink: '', stock: true })
+const blankDraft = (): Draft => ({ id: '', nombre: '', descripcion: '', precio: 0, categoria: '', imagen: '', mpLink: '', stock: true, destacado: false })
 
 // ─── COMPONENTE ───────────────────────────────────────────────────────────────
 export default function TiendaPage() {
@@ -138,6 +139,7 @@ export default function TiendaPage() {
     const body = JSON.stringify({
       nombre: editing.nombre, descripcion: editing.descripcion, precio: editing.precio,
       categoria: editing.categoria, imagen: editing.imagen, mpLink: editing.mpLink, stock: editing.stock,
+      destacado: !!editing.destacado,
     })
     try {
       const r = editing.id
@@ -222,9 +224,9 @@ export default function TiendaPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold truncate">{p.nombre}</h4>
-                  <p className="text-xs text-gray-400 font-mono">{money(p.precio)} · {p.categoria || '—'} · {p.stock ? 'En stock' : 'Sin stock'}{p.mpLink ? ' · MP ✓' : ''}</p>
+                  <p className="text-xs text-gray-400 font-mono">{money(p.precio)} · {p.categoria || '—'} · {p.stock ? 'En stock' : 'Sin stock'}{p.mpLink ? ' · MP ✓' : ''}{p.destacado ? ' · ⭐ portada' : ''}</p>
                 </div>
-                <button onClick={() => setEditing({ id: p.id, nombre: p.nombre, descripcion: p.descripcion, precio: p.precio, categoria: p.categoria, imagen: p.imagen, mpLink: p.mpLink, stock: p.stock })} className="w-9 h-9 rounded-lg border border-gray-800 bg-gray-950 grid place-items-center text-gray-400 hover:text-white hover:border-gray-600 transition"><Edit3 className="w-4 h-4" /></button>
+                <button onClick={() => setEditing({ id: p.id, nombre: p.nombre, descripcion: p.descripcion, precio: p.precio, categoria: p.categoria, imagen: p.imagen, mpLink: p.mpLink, stock: p.stock, destacado: !!p.destacado })} className="w-9 h-9 rounded-lg border border-gray-800 bg-gray-950 grid place-items-center text-gray-400 hover:text-white hover:border-gray-600 transition"><Edit3 className="w-4 h-4" /></button>
                 <button onClick={() => deleteProduct(p.id)} className="w-9 h-9 rounded-lg border border-gray-800 bg-gray-950 grid place-items-center text-gray-400 hover:text-red-400 hover:border-red-500 transition"><Trash2 className="w-4 h-4" /></button>
               </div>
             ))}
@@ -259,6 +261,10 @@ export default function TiendaPage() {
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={editing.stock} onChange={e => setEditing({ ...editing, stock: e.target.checked })} className="w-5 h-5 accent-cyan-500" />
                   <span className="text-sm">Disponible / en stock</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!editing.destacado} onChange={e => setEditing({ ...editing, destacado: e.target.checked })} className="w-5 h-5 accent-cyan-500" />
+                  <span className="text-sm">⭐ Mostrar en el carrusel de la portada <span className="text-gray-500">(máx. 4)</span></span>
                 </label>
               </div>
               <div className="flex gap-3 p-5 border-t border-gray-800 sticky bottom-0 bg-gray-950 rounded-b-2xl">

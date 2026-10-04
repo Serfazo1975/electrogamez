@@ -16,6 +16,7 @@ import BarraSuperior from '@/components/BarraSuperior'
 import PreciosOrientativos from '@/components/PreciosOrientativos'
 import ResenasGoogle from '@/components/ResenasGoogle'
 import MapaContacto from '@/components/MapaContacto'
+import ProductosDestacados from '@/components/ProductosDestacados'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -498,6 +499,9 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
 
         </div>
       </section>
+
+      {/* ── PRODUCTOS DESTACADOS (carrusel de la tienda) ── */}
+      <ProductosDestacados />
 
       {/* ── AUTORIDAD ── */}
       <section className="px-4 py-16 relative overflow-hidden">

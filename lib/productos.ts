@@ -17,6 +17,7 @@ export interface Producto {
   stock: boolean
   orden: number
   fechaAgregado: string
+  destacado?: boolean
 }
 
 let ensured = false
@@ -36,6 +37,10 @@ async function ensureTable() {
       fecha_agregado timestamptz NOT NULL DEFAULT now()
     )
   `)
+  // NUEVO: marca "destacado" para el carrusel de la portada (no toca lo existente)
+  await prisma.$executeRawUnsafe(
+    `ALTER TABLE tienda_productos ADD COLUMN IF NOT EXISTS destacado boolean NOT NULL DEFAULT false`
+  )
   ensured = true
 }
 
@@ -44,7 +49,7 @@ export async function listProductos(): Promise<Producto[]> {
   const rows = await prisma.$queryRawUnsafe<Producto[]>(`
     SELECT id, nombre, descripcion, precio, categoria, imagen,
            mp_link AS "mpLink", stock, orden,
-           fecha_agregado AS "fechaAgregado"
+           fecha_agregado AS "fechaAgregado", destacado
     FROM tienda_productos
     ORDER BY orden ASC, fecha_agregado DESC
   `)
@@ -60,6 +65,7 @@ interface ProductoInput {
   mpLink?: string
   stock?: boolean
   orden?: number
+  destacado?: boolean
 }
 
 function toNum(v: unknown): number {
@@ -73,8 +79,8 @@ export async function createProducto(d: ProductoInput) {
   const id = randomUUID()
   await prisma.$executeRawUnsafe(
     `INSERT INTO tienda_productos
-       (id, nombre, descripcion, precio, categoria, imagen, mp_link, stock, orden)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       (id, nombre, descripcion, precio, categoria, imagen, mp_link, stock, orden, destacado)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     id,
     d.nombre ?? '',
     d.descripcion ?? '',
@@ -84,6 +90,7 @@ export async function createProducto(d: ProductoInput) {
     d.mpLink ?? '',
     d.stock !== false,
     Number.isFinite(d.orden as number) ? (d.orden as number) : 0,
+    d.destacado === true,
   )
   return { id }
 }
@@ -93,7 +100,8 @@ export async function updateProducto(id: string, d: ProductoInput) {
   await prisma.$executeRawUnsafe(
     `UPDATE tienda_productos
         SET nombre=$2, descripcion=$3, precio=$4, categoria=$5,
-            imagen=$6, mp_link=$7, stock=$8
+            imagen=$6, mp_link=$7, stock=$8,
+            destacado=COALESCE($9::boolean, destacado)
       WHERE id=$1`,
     id,
     d.nombre ?? '',
@@ -103,10 +111,38 @@ export async function updateProducto(id: string, d: ProductoInput) {
     d.imagen ?? '',
     d.mpLink ?? '',
     d.stock !== false,
+    typeof d.destacado === 'boolean' ? d.destacado : null,
   )
 }
 
 export async function deleteProducto(id: string) {
   await ensureTable()
   await prisma.$executeRawUnsafe(`DELETE FROM tienda_productos WHERE id=$1`, id)
+}
+
+// NUEVO: productos para el carrusel de la portada (máx. `limite`).
+// Muestra los marcados con ⭐ "destacado" que tengan stock; si todavía no
+// marcaste ninguno, muestra los primeros con stock según el orden de la tienda.
+export async function listDestacados(limite = 4): Promise<Producto[]> {
+  await ensureTable()
+  const n = Math.min(Math.max(Math.floor(limite) || 4, 1), 8)
+  const marcados = await prisma.$queryRawUnsafe<Producto[]>(`
+    SELECT id, nombre, descripcion, precio, categoria, imagen,
+           mp_link AS "mpLink", stock, orden,
+           fecha_agregado AS "fechaAgregado", destacado
+    FROM tienda_productos
+    WHERE destacado = true AND stock = true
+    ORDER BY orden ASC, fecha_agregado DESC
+    LIMIT ${n}
+  `)
+  if (marcados.length > 0) return marcados
+  return prisma.$queryRawUnsafe<Producto[]>(`
+    SELECT id, nombre, descripcion, precio, categoria, imagen,
+           mp_link AS "mpLink", stock, orden,
+           fecha_agregado AS "fechaAgregado", destacado
+    FROM tienda_productos
+    WHERE stock = true
+    ORDER BY orden ASC, fecha_agregado DESC
+    LIMIT ${n}
+  `)
 }
