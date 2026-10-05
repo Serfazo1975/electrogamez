@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/tienda`,      lastModified: hoy, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${BASE}/seguimiento`, lastModified: hoy, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/portal`,      lastModified: hoy, changeFrequency: 'weekly',  priority: 0.5 },
+    { url: `${BASE}/reparacion-playstation-rio-gallegos`, lastModified: hoy, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/legales`,     lastModified: hoy, changeFrequency: 'yearly',  priority: 0.3 },
   ]
 }
