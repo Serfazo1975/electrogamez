@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import BarraSuperior from '@/components/BarraSuperior'
 import PreciosOrientativos from '@/components/PreciosOrientativos'
+import CotizadorExpress from '@/components/CotizadorExpress'
 import ResenasGoogle from '@/components/ResenasGoogle'
 import MapaContacto from '@/components/MapaContacto'
 import ProductosDestacados from '@/components/ProductosDestacados'
@@ -510,6 +511,7 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
       {/* ── AUTORIDAD ── */}
       <section className="px-4 py-16 relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
+                  <CotizadorExpress precios={initialPrecios} />
                   <PreciosOrientativos initial={initialPrecios} />
           <p className="text-cyan-400 text-sm font-medium uppercase tracking-widest mb-3">Autoridad real</p>
           <h2 className="text-3xl md:text-4xl font-bold mb-3">Detrás de cada reparación, un profesional certificado.</h2>
