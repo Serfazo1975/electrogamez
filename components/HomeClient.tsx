@@ -171,6 +171,29 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
   const [editingApp, setEditingApp] = useState<AppCard | null>(null)
   const [showAppForm, setShowAppForm] = useState(false)
   const [filtroCategoria, setFiltroCategoria] = useState('Todos')
+  // NUEVO: Descargas y Proyectos no se muestran en la portada;
+  // aparecen solo al tocar su nombre en la barra (o al entrar con #novedades / #proyectos).
+  const [seccionAbierta, setSeccionAbierta] = useState<'novedades' | 'proyectos' | null>(null)
+
+  useEffect(() => {
+    const irA = (id: 'novedades' | 'proyectos') => {
+      setSeccionAbierta(id)
+      // espera a que la sección se dibuje y la muestra
+      setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+    }
+    const h = window.location.hash
+    if (h === '#novedades' || h === '#proyectos') irA(h.slice(1) as 'novedades' | 'proyectos')
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest?.('a[href="#novedades"], a[href="#proyectos"]')
+      if (!a) return
+      e.preventDefault()
+      const href = a.getAttribute('href') as '#novedades' | '#proyectos'
+      history.replaceState(null, '', href)
+      irA(href.slice(1) as 'novedades' | 'proyectos')
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
   const [newApp, setNewApp] = useState<Omit<AppCard, 'id' | 'fechaAgregado'>>({
     titulo: '', descripcion: '', imagen: '', linkDescarga: '',
     sitioFuente: '', categoria: 'Utilidades', destacado: false
@@ -622,6 +645,7 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
       {/* ══════════════════════════════════════════════════════════════════════
           ── DESCARGAS Y NOVEDADES ──
       ══════════════════════════════════════════════════════════════════════ */}
+      {seccionAbierta === 'novedades' && (
       <section id="novedades" className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
 
@@ -899,10 +923,12 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
           )}
         </div>
       </section>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════════
           ── PROYECTOS EN PRODUCCIÓN ──
       ══════════════════════════════════════════════════════════════════════ */}
+      {seccionAbierta === 'proyectos' && (
       <section id="proyectos" className="py-24 px-4 bg-gray-900/40">
         <div className="max-w-6xl mx-auto">
           <div className="mb-14">
@@ -982,6 +1008,7 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
           </div>
         </div>
       </section>
+      )}
 
       {/* ── TESTIMONIOS ── */}
               <ResenasGoogle />
