@@ -97,6 +97,7 @@ const SERVICES = [
     icon: <Gamepad2 className="w-8 h-8" />,
     title: 'PlayStation 3, 4 & 5',
     img: '/svc-playstation.jpg',
+    href: '/reparacion-playstation-rio-gallegos',
     desc: 'Reparación especializada de consolas PlayStation. HDMI, ventiladores, lectores de disco, problemas de encendido y más.',
     items: [' HDMI PS5', 'Limpieza de ventiladores', 'Reparación lector blu-ray', 'Problemas de encendido'],
     color: 'from-blue-600/20 to-blue-600/5',
@@ -107,6 +108,7 @@ const SERVICES = [
     icon: <Monitor className="w-8 h-8" />,
     title: 'PC & Escritorio',
     img: '/svc-pc.jpg',
+    href: '/reparacion-pc-rio-gallegos',
     desc: 'Diagnóstico, reparación y actualización de computadoras de escritorio. Cambio de componentes y optimización.',
     items: ['Diagnóstico completo', 'Cambio de componentes', 'Instalación de Windows', 'Optimización de rendimiento'],
     color: 'from-cyan-600/20 to-cyan-600/5',
@@ -117,6 +119,7 @@ const SERVICES = [
     icon: <Cpu className="w-8 h-8" />,
     title: 'Laptops & Notebooks',
     img: '/svc-laptop.jpg',
+    href: '/reparacion-notebook-rio-gallegos',
     desc: 'Reparación de pantallas, teclados, bisagras y problemas de sobrecalentamiento en todo tipo de laptops.',
     items: ['Cambio de pantalla', 'Reparación de bisagras', 'Cambio de batería', 'Teclados y touchpad'],
     color: 'from-violet-600/20 to-violet-600/5',
@@ -127,6 +130,7 @@ const SERVICES = [
     icon: <Wrench className="w-8 h-8" />,
     title: 'Mantenimiento Preventivo',
     img: '/svc-ventilador.jpg',
+    href: '/mantenimiento-pc-rio-gallegos',
     desc: 'Limpieza profunda, cambio de pasta térmica y revisión general para extender la vida útil de tus equipos.',
     items: ['Limpieza interna profunda', 'Cambio de pasta térmica', 'Revisión general', 'Optimización del sistema'],
     color: 'from-emerald-600/20 to-emerald-600/5',
@@ -429,14 +433,14 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
 {SERVICES.map((s) => (
               <div key={s.title} className="neon-card group relative bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 flex flex-col">
                 {/* Imagen 3D del servicio */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
+                <a href={s.href} aria-label={`Ver ${s.title}`} className="relative block aspect-[4/3] overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950">
                   <img src={s.img} alt={s.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent" />
                   <div className={`absolute top-3 left-3 p-2 ${s.iconColor} rounded-lg backdrop-blur`}>
                     {s.icon}
                   </div>
                   <h3 className="absolute bottom-3 left-4 right-4 font-bold text-lg group-hover:text-cyan-400 transition-colors">{s.title}</h3>
-                </div>
+                </a>
                 {/* Contenido */}
                 <div className="p-4 flex flex-col flex-1">
                   <p className="text-gray-400 text-xs mb-3 leading-relaxed line-clamp-3">{s.desc}</p>
