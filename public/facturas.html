@@ -96,11 +96,14 @@
   #comprobante .cae p{font-size:11px;margin:0}
   #comprobante .marca{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:54px;font-weight:bold;color:rgba(200,0,0,.16)!important;transform:rotate(-24deg);text-align:center;pointer-events:none}
   @media print{
-    body *{visibility:hidden}
-    #comprobante,#comprobante *{visibility:visible}
-    #comprobante{position:absolute;left:0;top:0;width:100%;max-width:none;padding:0}
-    .modal{background:#fff;overflow:visible}
-    @page{size:A4;margin:12mm}
+    /* Una sola hoja A4: se oculta TODO salvo el comprobante (antes quedaba
+       el listado oculto ocupando lugar y el comprobante se cortaba en 2 hojas) */
+    html,body{background:#fff!important;height:auto!important;margin:0!important;padding:0!important;overflow:visible!important}
+    .wrap,.toolbar,#ncModal{display:none!important}
+    .modal{position:static!important;display:block!important;background:#fff!important;padding:0!important;overflow:visible!important}
+    #comprobante{position:relative!important;width:190mm!important;max-width:none!important;margin:0 auto!important;
+      border:1px solid #000;break-inside:avoid;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4 portrait;margin:10mm}
   }
 </style>
 </head>
@@ -523,7 +526,20 @@ $('tb').addEventListener('click', e=>{
   if(b.dataset.cp){ navigator.clipboard && navigator.clipboard.writeText(b.dataset.cp); b.textContent='✓'; setTimeout(()=>b.textContent='⧉',1200); }
 });
 $('btnClose').onclick = cerrar;
-$('btnPrint').onclick = () => window.print();
+/* Ajuste automático: si el comprobante es más alto que una hoja A4 (muchos ítems),
+   se reduce lo justo para que entre en una sola página al imprimir. */
+function ajustarA4(){
+  const c = $('comprobante'); if(!c) return;
+  c.style.zoom = '';
+  const prevW = c.style.width; c.style.width = '190mm';
+  const disp = 277 * 96 / 25.4 - 4;           // alto útil A4 (297 - 2×10 mm) en px
+  const h = c.scrollHeight;
+  c.style.zoom = h > disp ? String(Math.max(.4, disp / h)) : '';
+  c.style.width = prevW;
+}
+window.addEventListener('beforeprint', ajustarA4);
+window.addEventListener('afterprint', () => { const c=$('comprobante'); if(c) c.style.zoom=''; });
+$('btnPrint').onclick = () => { ajustarA4(); window.print(); };
 ['cliNom','cliDom','cliIva'].forEach(i=>$(i).addEventListener('input', dibujar));
 $('btnWa').onclick = () => {
   const f = ACTUAL; if(!f) return;

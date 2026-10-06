@@ -379,7 +379,7 @@ export default function FacturacionPage() {
       .pie .cae{text-align:right}
       .pie .cae p{font-size:11px}
       .print-btn{position:fixed;top:14px;left:20px;background:#333;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold}
-      @media print{.print-btn{display:none}body{padding:0;background:#fff}.hoja{border:1px solid #000;margin:0}}
+      @page{size:A4 portrait;margin:10mm}@media print{.print-btn{display:none}html,body{height:auto}body{padding:0;background:#fff}.hoja{border:1px solid #000;margin:0;max-width:none;width:190mm;break-inside:avoid;page-break-inside:avoid}}
     </style></head><body>
     <button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
     <div class="hoja">
