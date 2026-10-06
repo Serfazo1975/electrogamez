@@ -37,6 +37,25 @@
   .empty{padding:40px;text-align:center;color:var(--mut)}
   .msg{background:#4c1d1d;border:1px solid #7f2d2d;border-radius:12px;padding:14px;margin-bottom:14px}
   .msg.info{background:#0c3a44;border-color:#155e75}
+  /* NUEVO: Notas de crédito */
+  .b-nc{background:#4a1d4a;color:#f0abfc} .b-anul{background:#4a3a08;color:var(--warn)}
+  .neg{color:var(--bad)} .asoc{display:block;color:var(--mut);font-size:.72rem;font-weight:400}
+  .ov{position:fixed;inset:0;background:rgba(3,6,16,.85);display:none;overflow:auto;z-index:60;padding:16px}
+  .ov.on{display:block}
+  .dlg{max-width:580px;margin:4vh auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .dlg h2{margin:0 0 4px;font-size:1.2rem}
+  .dlg .sub{color:var(--mut);font-size:.85rem;margin-bottom:14px;line-height:1.5}
+  .dlg input,.dlg select{width:100%}
+  .dlg .opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;line-height:1.35}
+  .dlg .opt input{width:auto;margin-top:3px}
+  .dlg .opt.sel{border-color:var(--cy);background:#0c2530}
+  .dlg .it{display:grid;grid-template-columns:1fr 64px 110px 34px;gap:6px;margin-bottom:6px}
+  .dlg .lbl{display:block;color:var(--mut);font-size:.78rem;margin:12px 0 4px}
+  .dlg .aviso{background:#3a2a06;border:1px solid #7a5a10;border-radius:10px;padding:10px 12px;font-size:.82rem;margin-top:14px;line-height:1.45}
+  .dlg .err{background:#4c1d1d;border:1px solid #7f2d2d;border-radius:10px;padding:10px 12px;font-size:.85rem;margin-top:12px}
+  .dlg .acc{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  .btn.nc{background:#a21caf;border-color:#a21caf;color:#fff;font-weight:700}
+  .btn[disabled]{opacity:.55;cursor:not-allowed}
   /* Modal */
   .modal{position:fixed;inset:0;background:rgba(3,6,16,.85);display:none;overflow:auto;z-index:50;padding:16px}
   .modal.on{display:block}
@@ -101,7 +120,8 @@
 
   <div class="stats">
     <div class="stat"><span>Facturas válidas (con CAE)</span><b id="sOk">–</b></div>
-    <div class="stat"><span>Total facturado (producción)</span><b id="sTot">–</b></div>
+    <div class="stat"><span>Total facturado (producción, neto de notas de crédito)</span><b id="sTot">–</b></div>
+    <div class="stat"><span>Notas de crédito (con CAE)</span><b id="sNc">–</b></div>
     <div class="stat"><span>Rechazadas / con error</span><b id="sBad">–</b></div>
     <div class="stat"><span>Última emitida</span><b id="sUlt">–</b></div>
   </div>
@@ -120,6 +140,39 @@
       </tr></thead>
       <tbody id="tb"><tr><td colspan="8" class="empty">Cargando…</td></tr></tbody>
     </table>
+  </div>
+</div>
+
+<!-- NUEVO: Emitir Nota de Crédito -->
+<div class="ov" id="ncModal">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="ncTit">
+    <h2 id="ncTit">↩ Nota de Crédito C</h2>
+    <div class="sub" id="ncResumen"></div>
+
+    <label class="opt sel" id="ncOptTot"><input type="radio" name="ncModo" value="total" checked>
+      <span><b>Anular la factura completa</b><br><small id="ncTotTxt" style="color:var(--mut)"></small></span></label>
+    <label class="opt" id="ncOptPar"><input type="radio" name="ncModo" value="parcial">
+      <span><b>Anular solo una parte</b> <small style="color:var(--mut)">(devolución parcial, descuento, error en un ítem)</small></span></label>
+
+    <div id="ncParcial" style="display:none">
+      <div id="ncItems"></div>
+      <button class="btn sm" id="ncAddIt" type="button">+ Agregar ítem</button>
+      <div style="margin-top:8px;font-size:.88rem">Total de la nota de crédito: <b id="ncParTot">$ 0,00</b></div>
+    </div>
+
+    <span class="lbl">Concepto <small>(elegí el mismo que tenía la factura original)</small></span>
+    <select id="ncConcepto"><option value="1">Productos</option><option value="2">Servicios</option><option value="3">Productos y Servicios</option></select>
+
+    <span class="lbl">Motivo <small>(opcional, es solo una nota interna)</small></span>
+    <input id="ncMotivo" maxlength="200" placeholder="Ej: devolución del cliente / error de importe">
+
+    <div class="aviso">⚠️ Esto emite un comprobante <b>real</b> ante ARCA (con CAE) y <b>no se puede deshacer</b>. Si te equivocás, hay que emitir otra nota para corregirlo.</div>
+    <div class="err" id="ncErr" style="display:none"></div>
+
+    <div class="acc">
+      <button class="btn" id="ncCancel" type="button">Cancelar</button>
+      <button class="btn nc" id="ncEmitir" type="button">↩ Emitir Nota de Crédito</button>
+    </div>
   </div>
 </div>
 
@@ -159,6 +212,7 @@ const DOC_TIPO = {80:'CUIT',86:'CUIL',96:'DNI',99:'Doc.',0:'CI Policía Federal'
 const CBTE = {1:['A','001','FACTURA'],6:['B','006','FACTURA'],11:['C','011','FACTURA'],3:['A','003','NOTA DE CRÉDITO'],8:['B','008','NOTA DE CRÉDITO'],13:['C','013','NOTA DE CRÉDITO'],2:['A','002','NOTA DE DÉBITO'],7:['B','007','NOTA DE DÉBITO'],12:['C','012','NOTA DE DÉBITO']};
 
 let DATA = [];
+let ENTORNO = null; // entorno del sistema (prod / homo), lo informa la API
 let FILTRADAS = [];
 let ACTUAL = null;
 
@@ -167,6 +221,11 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp
 const money = n => Number(n||0).toLocaleString('es-AR',{style:'currency',currency:'ARS'});
 const pad = (n,l) => String(n).padStart(l,'0');
 const esOk = f => f.resultado === 'A' && !!f.cae;
+/* NUEVO: notas de crédito */
+const esNC = f => Number(f.cbte_tipo) === 13;
+const nroAsoc = f => (f.asoc_nro != null && f.asoc_pto_vta != null) ? pad(f.asoc_pto_vta,4) + '-' + pad(f.asoc_nro,8) : '';
+const acreditadoDe = f => DATA.filter(x => esNC(x) && esOk(x) && x.asoc_id != null && Number(x.asoc_id) === Number(f.id)).reduce((s,x)=>s+Number(x.imp_total),0);
+const restaDe = f => Math.round((Number(f.imp_total) - acreditadoDe(f)) * 100) / 100;
 const fmtNro = f => pad(f.pto_vta,4) + '-' + pad(f.cbte_nro,8);
 const fechaAR = iso => iso ? new Date(iso).toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}) : '';
 const fechaHoraAR = iso => iso ? new Date(iso).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}) : '';
@@ -186,6 +245,7 @@ async function cargar(){
     const j = await r.json();
     if(!r.ok) throw new Error(j.detalle || j.error || 'Error');
     DATA = j.facturas || [];
+    ENTORNO = j.entornoActual || null;
     filtrar();
   }catch(e){
     $('aviso').innerHTML = '<div class="msg">No se pudo cargar el historial: ' + esc(e.message) + '</div>';
@@ -219,11 +279,14 @@ function filtrar(){
 function pintar(){
   // Resumen sobre TODO el historial (no sobre el filtro)
   const ok = DATA.filter(esOk);
-  const totProd = ok.filter(f=>f.entorno==='prod').reduce((s,f)=>s+Number(f.imp_total),0);
-  $('sOk').textContent = ok.length;
+  const okFact = ok.filter(f=>!esNC(f)), okNc = ok.filter(esNC);
+  const totProd = okFact.filter(f=>f.entorno==='prod').reduce((s,f)=>s+Number(f.imp_total),0)
+                - okNc.filter(f=>f.entorno==='prod').reduce((s,f)=>s+Number(f.imp_total),0);
+  $('sOk').textContent = okFact.length;
+  $('sNc').textContent = okNc.length;
   $('sTot').textContent = money(totProd);
   $('sBad').textContent = DATA.length - ok.length;
-  $('sUlt').textContent = ok.length ? fmtNro(ok[0]) : '–';
+  $('sUlt').textContent = okFact.length ? fmtNro(okFact[0]) : '–';
 
   if(!FILTRADAS.length){
     $('tb').innerHTML = '<tr><td colspan="8" class="empty">No hay facturas para mostrar.</td></tr>';
@@ -232,15 +295,22 @@ function pintar(){
   $('tb').innerHTML = FILTRADAS.map(f=>{
     const cb = CBTE[f.cbte_tipo] || ['?','', 'COMPROBANTE'];
     const doc = Number(f.doc_tipo) === 99 ? 'Consumidor Final' : ((DOC_TIPO[f.doc_tipo]||'Doc.') + ' ' + esc(f.doc_nro));
+    const nc = esNC(f);
+    const resta = (!nc && esOk(f)) ? restaDe(f) : null;
+    const anulada = resta !== null && acreditadoDe(f) > 0;
+    const puedeNC = resta !== null && Number(f.cbte_tipo) === 11 && resta >= 0.01 && (!ENTORNO || f.entorno === ENTORNO);
     return '<tr>'
-      + '<td><b>' + esc(cb[2]) + ' ' + cb[0] + '</b> ' + fmtNro(f) + '</td>'
+      + '<td><b>' + esc(cb[2]) + ' ' + cb[0] + '</b> ' + fmtNro(f) + (nc && nroAsoc(f) ? '<span class="asoc">anula Factura C ' + nroAsoc(f) + '</span>' : '') + '</td>'
       + '<td>' + fechaHoraAR(f.creado) + '</td>'
       + '<td>' + doc + '</td>'
-      + '<td class="r"><b>' + money(f.imp_total) + '</b></td>'
+      + '<td class="r">' + (nc ? '<b class="neg">− ' + money(f.imp_total) + '</b>' : '<b>' + money(f.imp_total) + '</b>') + '</td>'
       + '<td>' + (f.cae ? esc(f.cae) + ' <button class="btn sm" data-cp="'+esc(f.cae)+'" title="Copiar CAE">⧉</button>' : '–') + '</td>'
       + '<td>' + vtoFmt(f.cae_vto) + '</td>'
-      + '<td>' + (esOk(f) ? '<span class="badge b-ok">✓ Aprobada</span>' : '<span class="badge b-bad" title="'+esc(f.observaciones||'')+'">✕ Rechazada</span>') + (f.entorno==='prod' ? '' : ' <span class="badge b-homo">Prueba</span>') + '</td>'
-      + '<td>' + (esOk(f) ? '<button class="btn sm pri" data-id="'+f.id+'">🖨 Ver / Reimprimir</button>' : '') + '</td>'
+      + '<td>' + (esOk(f) ? '<span class="badge b-ok">✓ Aprobada</span>' : '<span class="badge b-bad" title="'+esc(f.observaciones||'')+'">✕ Rechazada</span>') + (f.entorno==='prod' ? '' : ' <span class="badge b-homo">Prueba</span>')
+        + (nc && esOk(f) ? ' <span class="badge b-nc">Nota de crédito</span>' : '')
+        + (anulada ? (resta < 0.01 ? ' <span class="badge b-anul">Anulada</span>' : ' <span class="badge b-anul" title="Acreditado: '+esc(money(acreditadoDe(f)))+'">Anulada en parte</span>') : '') + '</td>'
+      + '<td>' + (esOk(f) ? '<button class="btn sm pri" data-id="'+f.id+'">🖨 Ver / Reimprimir</button>' : '')
+        + (puedeNC ? ' <button class="btn sm" data-nc="'+f.id+'" title="Anular esta factura con una Nota de Crédito">↩ Nota de crédito</button>' : '') + '</td>'
       + '</tr>';
   }).join('');
 }
@@ -314,14 +384,16 @@ async function dibujar(){
     return '<tr><td class="c">&nbsp;</td><td>'+esc(it.desc)+'</td><td class="cent">'+num(it.cant)+'</td><td class="cent">unidades</td><td class="der">'+num(pu)+'</td><td class="der">0,00</td><td class="der">0,00</td><td class="der">'+num(sub)+'</td></tr>';
   }).join('');
   const homo = f.entorno !== 'prod';
+  const nc = esNC(f);
+  const lineaAsoc = nc && nroAsoc(f) ? '<p><b>Comprobante asociado:</b> Factura C ' + nroAsoc(f) + '</p>' : '';
   $('comprobante').innerHTML =
     (homo ? '<div class="marca">COMPROBANTE DE PRUEBA<br>SIN VALIDEZ FISCAL</div>' : '') +
     '<div class="tit">ORIGINAL</div>' +
     '<div class="cab">' +
       '<div class="cab-izq"><div class="fant">'+esc(EMISOR.fantasia)+'</div>' +
         '<p><b>Razón Social:</b> '+esc(EMISOR.razonSocial)+'</p><p><b>Domicilio Comercial:</b> '+esc(EMISOR.domicilio)+'</p><p><b>Condición frente al IVA:</b> '+esc(EMISOR.condIva)+'</p></div>' +
-      '<div class="cab-c"><div class="letra">C</div><div class="cod">COD. 011</div></div>' +
-      '<div class="cab-der"><div class="factura">FACTURA</div>' +
+      '<div class="cab-c"><div class="letra">C</div><div class="cod">COD. '+(nc?'013':'011')+'</div></div>' +
+      '<div class="cab-der"><div class="factura">'+(nc?'NOTA DE CRÉDITO':'FACTURA')+'</div>' +
         '<p><b>Punto de Venta: '+pad(f.pto_vta,5)+'</b> &nbsp; <b>Comp. Nro: '+pad(f.cbte_nro,8)+'</b></p>' +
         '<p><b>Fecha de Emisión:</b> '+fechaAR(f.creado)+'</p><p><b>CUIT:</b> '+EMISOR.cuit+'</p>' +
         '<p><b>Ingresos Brutos:</b> '+esc(EMISOR.iibb)+'</p><p><b>Fecha de Inicio de Actividades:</b> '+esc(EMISOR.inicio)+'</p></div>' +
@@ -329,6 +401,7 @@ async function dibujar(){
     '<div class="cliente">' +
       '<p><b>CUIT:</b> '+(Number(f.doc_tipo)===99?'0':esc(f.doc_nro))+' &nbsp;&nbsp; <b>Apellido y Nombre / Razón Social:</b> '+esc(nombre)+'</p>' +
       '<p><b>Condición de IVA:</b> '+esc(iva)+' &nbsp;&nbsp; <b>Domicilio:</b> '+esc(dom)+'</p>' +
+      lineaAsoc +
       '<p><b>Condición de venta:</b> Contado</p></div>' +
     '<table><thead><tr><th>Código</th><th>Producto / Servicio</th><th class="cent">Cantidad</th><th class="cent">U. Medida</th><th class="der">Precio Unit.</th><th class="der">% Bonif</th><th class="der">Imp. Bonif.</th><th class="der">Subtotal</th></tr></thead><tbody>'+filas+'</tbody></table>' +
     '<div class="tot-wrap"><div class="tot"><div class="r"><span>Subtotal: $</span><span>'+num(f.imp_total)+'</span></div><div class="r"><span>Importe Otros Tributos: $</span><span>0,00</span></div><div class="r big"><span>Importe Total: $</span><span>'+num(f.imp_total)+'</span></div></div></div>' +
@@ -341,13 +414,102 @@ async function dibujar(){
 function cerrar(){ $('modal').classList.remove('on'); document.body.style.overflow=''; ACTUAL=null; }
 
 function csv(){
-  const rows = [['ID','Fecha','Tipo','Comprobante','Doc. tipo','Doc. nro','Total','Neto','IVA','CAE','Vto CAE','Estado','Entorno']];
-  FILTRADAS.forEach(f=>rows.push([f.id, fechaHoraAR(f.creado), (CBTE[f.cbte_tipo]||[])[0]||f.cbte_tipo, fmtNro(f), f.doc_tipo, f.doc_nro, f.imp_total, f.imp_neto, f.imp_iva, f.cae||'', f.cae_vto||'', esOk(f)?'Aprobada':'Rechazada', f.entorno]));
+  const rows = [['ID','Fecha','Tipo','Comprobante','Doc. tipo','Doc. nro','Total','Neto','IVA','CAE','Vto CAE','Estado','Entorno','Factura asociada']];
+  /* Las notas de crédito van con importes NEGATIVOS, así las sumas del Excel dan el neto */
+  FILTRADAS.forEach(f=>{ const sg = esNC(f) ? -1 : 1; rows.push([f.id, fechaHoraAR(f.creado), esNC(f) ? 'NC C' : ((CBTE[f.cbte_tipo]||[])[0]||f.cbte_tipo), fmtNro(f), f.doc_tipo, f.doc_nro, sg*f.imp_total, sg*f.imp_neto, sg*f.imp_iva, f.cae||'', f.cae_vto||'', esOk(f)?'Aprobada':'Rechazada', f.entorno, nroAsoc(f)]); });
   const txt = rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['\ufeff'+txt],{type:'text/csv;charset=utf-8'}));
   a.download = 'facturas-electrogamez-' + ymd(new Date().toISOString()) + '.csv';
   a.click();
+}
+
+/* ---------- NUEVO: Nota de Crédito ---------- */
+let NC_F = null, NC_ENVIANDO = false, NC_ITEMS = [];
+/* Acepta "65.000", "1.500,50", "1,5" o "1500.50" */
+const numAR = v => {
+  let t = String(v == null ? '' : v).trim().replace(/\s|\$/g,'');
+  if(t.includes(',')) t = t.replace(/\./g,'').replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g,'');
+  const n = parseFloat(t); return isFinite(n) ? n : 0;
+};
+
+function ncModo(){ return document.querySelector('input[name="ncModo"]:checked').value; }
+function ncTotalParcial(){ return Math.round(NC_ITEMS.reduce((s,i)=>s + numAR(i.cantidad)*numAR(i.precioUnitario),0)*100)/100; }
+
+function ncPintarItems(){
+  $('ncItems').innerHTML = NC_ITEMS.map((it,i)=>
+    '<div class="it">'
+    + '<input data-i="'+i+'" data-k="descripcion" placeholder="Descripción" value="'+esc(it.descripcion)+'">'
+    + '<input data-i="'+i+'" data-k="cantidad" inputmode="decimal" placeholder="Cant." value="'+esc(it.cantidad)+'">'
+    + '<input data-i="'+i+'" data-k="precioUnitario" inputmode="decimal" placeholder="Precio unit." value="'+esc(it.precioUnitario)+'">'
+    + '<button class="btn sm" type="button" data-del="'+i+'" title="Quitar">✕</button></div>').join('');
+  $('ncParTot').textContent = money(ncTotalParcial());
+}
+
+function ncCambiarModo(){
+  const par = ncModo() === 'parcial';
+  $('ncParcial').style.display = par ? 'block' : 'none';
+  $('ncOptTot').classList.toggle('sel', !par);
+  $('ncOptPar').classList.toggle('sel', par);
+  if(par && !NC_ITEMS.length){ NC_ITEMS = [{descripcion:'', cantidad:'1', precioUnitario:''}]; ncPintarItems(); }
+}
+
+function abrirNC(id){
+  const f = DATA.find(x=>String(x.id)===String(id)); if(!f) return;
+  NC_F = f; NC_ITEMS = [];
+  const ya = acreditadoDe(f), resta = restaDe(f);
+  $('ncResumen').innerHTML = 'Factura C <b>' + fmtNro(f) + '</b> del ' + fechaAR(f.creado) + ' · Total ' + money(f.imp_total)
+    + (ya > 0 ? '<br>Ya acreditado: ' + money(ya) + ' · Queda por acreditar: <b>' + money(resta) + '</b>' : '');
+  $('ncTotTxt').textContent = 'Se emite una nota por ' + money(resta) + (ya > 0 ? ' (lo que falta acreditar)' : '') + ', con el mismo detalle y el mismo cliente.';
+  document.querySelector('input[name="ncModo"][value="total"]').checked = true;
+  $('ncConcepto').value = String([1,2,3].includes(Number(f.concepto)) ? f.concepto : 1);
+  $('ncMotivo').value = '';
+  $('ncErr').style.display = 'none';
+  $('ncEmitir').disabled = false; $('ncEmitir').textContent = '↩ Emitir Nota de Crédito';
+  ncCambiarModo();
+  $('ncModal').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarNC(){ if(NC_ENVIANDO) return; $('ncModal').classList.remove('on'); document.body.style.overflow=''; NC_F = null; }
+function ncError(html){ const e = $('ncErr'); e.innerHTML = html; e.style.display = 'block'; }
+
+async function emitirNC(){
+  const f = NC_F; if(!f || NC_ENVIANDO) return;
+  const par = ncModo() === 'parcial';
+  const body = { facturaId: f.id, concepto: Number($('ncConcepto').value), motivo: $('ncMotivo').value.trim() };
+  let total = restaDe(f);
+  if(par){
+    const items = NC_ITEMS.map(i=>({descripcion:String(i.descripcion||'').trim(), cantidad:numAR(i.cantidad), precioUnitario:numAR(i.precioUnitario)}));
+    if(!items.length || items.some(i=>!i.descripcion || !(i.cantidad>0) || !(i.precioUnitario>0))){
+      return ncError('Cada ítem necesita descripción, cantidad y precio mayores a cero.');
+    }
+    total = Math.round(items.reduce((s,i)=>s+i.cantidad*i.precioUnitario,0)*100)/100;
+    if(total > restaDe(f) + 0.005) return ncError('El total (' + esc(money(total)) + ') supera lo que queda por acreditar (' + esc(money(restaDe(f))) + ').');
+    body.items = items;
+  }
+  if(!confirm('¿Emitir una Nota de Crédito C por ' + money(total) + '\ncontra la Factura C ' + fmtNro(f) + '?\n\nEs un comprobante real ante ARCA y no se puede deshacer.')) return;
+
+  NC_ENVIANDO = true; $('ncEmitir').disabled = true; $('ncEmitir').textContent = '⏳ Emitiendo…'; $('ncErr').style.display = 'none';
+  try{
+    const r = await fetch('/api/notas-credito',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    let j = null; try{ j = await r.json(); }catch(e){}
+    if(r.status === 401){ NC_ENVIANDO = false; $('ncEmitir').disabled = false; $('ncEmitir').textContent = '↩ Emitir Nota de Crédito'; return ncError('Tu sesión de administrador venció. Entrá de nuevo por <a href="/login">/login</a>.'); }
+    if(j && j.ok){
+      NC_ENVIANDO = false; cerrarNC();
+      await cargar();
+      const nueva = DATA.find(x=>esNC(x) && esOk(x) && Number(x.cbte_nro)===Number(j.cbteNro) && Number(x.pto_vta)===Number(j.ptoVta));
+      if(nueva) abrir(nueva.id);
+      return;
+    }
+    NC_ENVIANDO = false; $('ncEmitir').disabled = false; $('ncEmitir').textContent = '↩ Emitir Nota de Crédito';
+    ncError('<b>No se emitió la Nota de Crédito.</b><br>' + esc((j && j.error) || 'Error desconocido') + (j && j.observaciones ? '<br><small>' + esc(j.observaciones) + '</small>' : ''));
+    cargar();
+  }catch(e){
+    NC_ENVIANDO = false; $('ncEmitir').disabled = false; $('ncEmitir').textContent = '↩ Emitir Nota de Crédito';
+    ncError('<b>No se pudo confirmar la respuesta del servidor.</b><br>Antes de volver a intentar, tocá <b>↻ Actualizar</b> en el historial: puede que la nota ya se haya emitido.');
+  }
 }
 
 /* ---------- Eventos ---------- */
@@ -357,6 +519,7 @@ $('btnCsv').onclick = csv;
 $('tb').addEventListener('click', e=>{
   const b = e.target.closest('button'); if(!b) return;
   if(b.dataset.id) abrir(b.dataset.id);
+  if(b.dataset.nc) abrirNC(b.dataset.nc);
   if(b.dataset.cp){ navigator.clipboard && navigator.clipboard.writeText(b.dataset.cp); b.textContent='✓'; setTimeout(()=>b.textContent='⧉',1200); }
 });
 $('btnClose').onclick = cerrar;
@@ -364,10 +527,19 @@ $('btnPrint').onclick = () => window.print();
 ['cliNom','cliDom','cliIva'].forEach(i=>$(i).addEventListener('input', dibujar));
 $('btnWa').onclick = () => {
   const f = ACTUAL; if(!f) return;
-  const txt = 'ElectroGamez - Factura ' + (CBTE[f.cbte_tipo]||['C'])[0] + ' N° ' + fmtNro(f) + '\nFecha: ' + fechaAR(f.creado) + '\nTotal: ' + money(f.imp_total) + '\nCAE: ' + f.cae + ' (vto. ' + vtoFmt(f.cae_vto) + ')\nGracias por tu compra!';
+  const txt = esNC(f)
+    ? 'ElectroGamez - Nota de Crédito C N° ' + fmtNro(f) + (nroAsoc(f) ? '\nAnula la Factura C N° ' + nroAsoc(f) : '') + '\nFecha: ' + fechaAR(f.creado) + '\nTotal: ' + money(f.imp_total) + '\nCAE: ' + f.cae + ' (vto. ' + vtoFmt(f.cae_vto) + ')'
+    : 'ElectroGamez - Factura ' + (CBTE[f.cbte_tipo]||['C'])[0] + ' N° ' + fmtNro(f) + '\nFecha: ' + fechaAR(f.creado) + '\nTotal: ' + money(f.imp_total) + '\nCAE: ' + f.cae + ' (vto. ' + vtoFmt(f.cae_vto) + ')\nGracias por tu compra!';
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 };
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('modal').classList.contains('on')) cerrar(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ if($('ncModal').classList.contains('on')) cerrarNC(); else if($('modal').classList.contains('on')) cerrar(); } });
+/* NUEVO: eventos del modal de Nota de Crédito */
+document.querySelectorAll('input[name="ncModo"]').forEach(r=>r.addEventListener('change', ncCambiarModo));
+$('ncCancel').onclick = cerrarNC;
+$('ncEmitir').onclick = emitirNC;
+$('ncAddIt').onclick = () => { NC_ITEMS.push({descripcion:'', cantidad:'1', precioUnitario:''}); ncPintarItems(); };
+$('ncItems').addEventListener('input', e=>{ const t = e.target; if(t.dataset.i == null) return; NC_ITEMS[Number(t.dataset.i)][t.dataset.k] = t.value; $('ncParTot').textContent = money(ncTotalParcial()); });
+$('ncItems').addEventListener('click', e=>{ const b = e.target.closest('button'); if(!b || b.dataset.del == null) return; NC_ITEMS.splice(Number(b.dataset.del),1); if(!NC_ITEMS.length) NC_ITEMS.push({descripcion:'', cantidad:'1', precioUnitario:''}); ncPintarItems(); });
 
 cargar();
 </script>

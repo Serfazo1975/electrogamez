@@ -17,6 +17,7 @@ interface Item {
 
 interface FacturaHist {
   id: number;
+  cbte_tipo?: number;
   cbte_nro: number;
   doc_nro: number;
   imp_total: number;
@@ -606,6 +607,7 @@ export default function FacturacionPage() {
           <h3 style={{ fontWeight: 700 }}>📋 Facturas emitidas</h3>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <a href="/facturas.html" target="_blank" rel="noopener" style={{ ...btnSecundario, textDecoration: 'none', display: 'inline-block' }}>🖨️ Ver / Reimprimir</a>
+            <a href="/facturas.html" target="_blank" rel="noopener" title="Elegí la factura y tocá «Nota de crédito»" style={{ ...btnSecundario, textDecoration: 'none', display: 'inline-block' }}>↩ Nota de crédito</a>
             <button onClick={cargarFacturas} style={btnSecundario}>{cargandoLista ? '...' : '🔄 Actualizar'}</button>
           </div>
         </div>
@@ -623,8 +625,8 @@ export default function FacturacionPage() {
               <tbody>
                 {facturas.map((f) => (
                   <tr key={f.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={td}>{String(f.cbte_nro).padStart(8, '0')}</td>
-                    <td style={td}>$ {formatMoney(f.imp_total)}</td>
+                    <td style={td}>{f.cbte_tipo === 13 ? 'NC ' : ''}{String(f.cbte_nro).padStart(8, '0')}</td>
+                    <td style={td}>{f.cbte_tipo === 13 ? '− ' : ''}$ {formatMoney(f.imp_total)}</td>
                     <td style={td}>{f.cae || '—'}</td>
                     <td style={td}>{f.cae_vto ? fFecha(f.cae_vto) : '—'}</td>
                     <td style={td}><span style={{ color: f.resultado === 'A' ? '#166534' : '#991b1b', fontWeight: 600 }}>{f.resultado === 'A' ? '✅ Aprobada' : '❌ ' + f.resultado}</span></td>
