@@ -45,6 +45,33 @@ export async function GET() {
     } catch {
       filas = await consultar('');
     }
+    // NUEVO: datos del cliente de cada comprobante (nombre, condición de IVA, domicilio) para
+    // que la reimpresión salga completa. Se leen del historial por cliente, donde se guardaron
+    // al facturar. Es opcional: si falla, las facturas salen igual (como antes).
+    try {
+      const docs: any[] = await prisma.$queryRawUnsafe(
+        `SELECT numero, nombre, cuit, extra->>'condIva' AS iva, extra->>'direccion' AS dom
+           FROM cliente_documentos WHERE tipo = 'factura' ORDER BY id DESC LIMIT 2000`
+      );
+      const porNumero = new Map<string, any>();
+      const porCuit = new Map<string, any>();
+      for (const d of docs) {
+        porNumero.set(String(d.numero), d);
+        const c = String(d.cuit || '').replace(/\D/g, '');
+        const real = d.nombre && d.nombre !== 'Consumidor Final';
+        if (c && real && !porCuit.has(c)) porCuit.set(c, d); // el más reciente con nombre real
+      }
+      const clave = (pv: any, nro: any) => `${String(pv).padStart(5, '0')}-${String(nro).padStart(8, '0')}`;
+      for (const f of filas) {
+        // una Nota de Crédito va al mismo cliente que la factura que anula
+        const k = Number(f.cbte_tipo) === 13 && f.asoc_nro ? clave(f.asoc_pto_vta, f.asoc_nro) : clave(f.pto_vta, f.cbte_nro);
+        let d = porNumero.get(k);
+        if (!d || !d.nombre || (d.nombre === 'Consumidor Final' && Number(f.doc_tipo) !== 99)) {
+          d = porCuit.get(String(f.doc_nro || '').replace(/\D/g, '')) || d;
+        }
+        if (d) { f.cli_nombre = d.nombre || null; f.cli_iva = d.iva || null; f.cli_dom = d.dom || null; }
+      }
+    } catch { /* sin historial de clientes: se muestra como antes */ }
     // NUEVO: en qué entorno está el sistema (para ofrecer Notas de Crédito solo donde corresponde)
     return NextResponse.json({ facturas: filas, entornoActual: process.env.AFIP_ENV === 'prod' ? 'prod' : 'homo' });
   } catch (e: any) {

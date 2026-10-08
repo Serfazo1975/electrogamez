@@ -368,7 +368,11 @@ async function abrir(id){
   const f = DATA.find(x=>String(x.id)===String(id));
   if(!f) return;
   ACTUAL = f;
-  ['cliNom','cliDom','cliIva'].forEach(i=>$(i).value='');
+  // Datos del cliente: los guardados al facturar (si hay); si no, la condición de IVA que se informó a ARCA.
+  const IVA_ARCA = {1:'Responsable Inscripto',4:'Exento',5:'Consumidor Final',6:'Monotributista'};
+  $('cliNom').value = f.cli_nombre || '';
+  $('cliDom').value = f.cli_dom && f.cli_dom !== '—' ? f.cli_dom : '';
+  $('cliIva').value = f.cli_iva || IVA_ARCA[Number(f.cond_iva_receptor)] || '';
   $('modal').classList.add('on');
   document.body.style.overflow = 'hidden';
   await dibujar();
