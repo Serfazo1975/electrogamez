@@ -345,6 +345,7 @@ export default function FacturacionPage() {
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
     <style>
       *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;color:#000}
+      html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       body{padding:24px;background:#eee}
       .hoja{max-width:800px;margin:0 auto 20px;background:#fff;border:1px solid #000}
       .tit{text-align:center;font-size:15px;font-weight:bold;padding:4px;border-bottom:1px solid #000}
@@ -359,7 +360,7 @@ export default function FacturacionPage() {
       .cab-der .factura{font-size:20px;font-weight:bold;margin-bottom:8px}
       .fila-periodo{display:flex;justify-content:space-between;padding:5px 12px;border-bottom:1px solid #000;font-size:10.5px}
       .cliente{padding:6px 12px;border-bottom:1px solid #000;font-size:10.5px}
-      .cliente p{margin-bottom:3px}
+      .cliente p{margin-bottom:3px;font-size:10.5px}
       table{width:100%;border-collapse:collapse}
       th{padding:4px 6px;font-size:10px;border-right:1px solid #000;border-bottom:1px solid #000;text-align:left}
       th.cent,td.cent{text-align:center}th.der,td.der{text-align:right}
@@ -408,7 +409,6 @@ export default function FacturacionPage() {
       <div class="cliente">
         <p><b>CUIT:</b> ${f.docTipo === 99 ? '0' : f.docNro} &nbsp;&nbsp; <b>Apellido y Nombre / Razón Social:</b> ${f.clienteNombre}</p>
         <p><b>Condición de IVA:</b> ${f.condIvaCliente || 'Consumidor Final'} &nbsp;&nbsp; <b>Domicilio:</b> ${f.direccionCliente || '—'}</p>
-        <p><b>Condición frente al IVA:</b> Consumidor Final</p>
         <p><b>Condición de venta:</b> Contado</p>
       </div>
       <table>
