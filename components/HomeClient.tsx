@@ -18,6 +18,7 @@ import CotizadorExpress from '@/components/CotizadorExpress'
 import ResenasGoogle from '@/components/ResenasGoogle'
 import MapaContacto from '@/components/MapaContacto'
 import ProductosDestacados from '@/components/ProductosDestacados'
+import JuegoArcade from '@/components/JuegoArcade'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -1013,6 +1014,8 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
       {/* ── TESTIMONIOS ── */}
               <ResenasGoogle />
 
+      {/* ── ZONA ARCADE (juego dentro de la página, sin salir del sitio) ── */}
+      <JuegoArcade />
 
       {/* ── CONTACTO ── */}
       <section id="contacto" className="py-24 px-4 bg-gray-900/40">
