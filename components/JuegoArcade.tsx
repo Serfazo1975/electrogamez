@@ -10,6 +10,7 @@
 // ============================================================
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { EVENTO_ABRIR_JUEGO } from '@/components/AccesoArcade'
 import { Gamepad2, Pause, Play, Volume2, VolumeX, Trophy, Heart, RotateCcw, X } from 'lucide-react'
 
 // ─── LABERINTO (19 x 21) ──────────────────────────────────────────────────────
@@ -986,6 +987,13 @@ function Juego({ onCerrar }: { onCerrar: () => void }) {
 // misma página (sin cambiar de URL) y se cierra con la X, Esc o tocando afuera.
 export default function JuegoArcade() {
   const [abierto, setAbierto] = useState(false)
+
+  // El joystick del menú superior (AccesoArcade) abre el juego con este evento
+  useEffect(() => {
+    const abrir = () => setAbierto(true)
+    window.addEventListener(EVENTO_ABRIR_JUEGO, abrir)
+    return () => window.removeEventListener(EVENTO_ABRIR_JUEGO, abrir)
+  }, [])
 
   useEffect(() => {
     if (!abierto) return

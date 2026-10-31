@@ -19,6 +19,7 @@ import ResenasGoogle from '@/components/ResenasGoogle'
 import MapaContacto from '@/components/MapaContacto'
 import ProductosDestacados from '@/components/ProductosDestacados'
 import JuegoArcade from '@/components/JuegoArcade'
+import AccesoArcade from '@/components/AccesoArcade'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -305,7 +306,7 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
           </div>
 
           {/* Teléfonos neon en el nav */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden min-[1100px]:flex items-center gap-3">
             {/* dangerouslySetInnerHTML: evita que el CSS se escape distinto en servidor y navegador (error de hidratación) */}
             <style dangerouslySetInnerHTML={{ __html: `
               @keyframes navNeon {
@@ -343,6 +344,10 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
               <span className="nav-neon-2">11 5697-5880</span>
             </a>
           </div>
+
+          {/* Acceso al juego ELECTRO-MAN: joystick + escena (escritorio) / solo joystick (celular) */}
+          <AccesoArcade className="hidden md:flex" />
+          <AccesoArcade movil className="flex md:hidden" />
 
           <button className="md:hidden text-gray-400 p-1" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
