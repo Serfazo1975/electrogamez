@@ -250,8 +250,32 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
       fechaAgregado: new Date().toISOString()
     }
     saveApps([app, ...apps])
+    // NUEVO: guardar también en la base (antes solo se veía en pantalla y se perdía al recargar)
+    fetch('/api/descargas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newApp),
+    })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(res => setApps(prev => prev.map(a => a.id === app.id ? { ...a, id: res.id } : a)))
+      .catch(() => alert('No se pudo guardar en el servidor. Volvé a iniciar sesión como admin e intentá de nuevo.'))
     setNewApp({ titulo: '', descripcion: '', imagen: '', linkDescarga: '', sitioFuente: '', categoria: 'Utilidades', destacado: false })
     setShowAppForm(false)
+  }
+
+  // NUEVO: carga el catálogo de descargas útiles para Windows (no duplica las existentes)
+  async function handleImportarCatalogo() {
+    if (!confirm('¿Cargar el catálogo de descargas para Windows? No se borra ni duplica nada de lo que ya tenés.')) return
+    try {
+      const r = await fetch('/api/descargas/importar', { method: 'POST' })
+      if (!r.ok) throw new Error()
+      const res = await r.json()
+      const lista = await fetch('/api/descargas').then(x => x.ok ? x.json() : [])
+      setApps(lista)
+      alert(`Listo: ${res.agregadas} agregadas, ${res.omitidas} ya existían.`)
+    } catch {
+      alert('No se pudo cargar el catálogo. Iniciá sesión como admin e intentá de nuevo.')
+    }
   }
 
   function handleSaveEdit() {
@@ -676,6 +700,12 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
                     className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                   >
                     <Plus className="w-4 h-4" /> Agregar app
+                  </button>
+                  <button
+                    onClick={handleImportarCatalogo}
+                    className="flex items-center gap-2 border border-cyan-700 hover:border-cyan-500 text-cyan-400 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    <Download className="w-4 h-4" /> Cargar catálogo Windows
                   </button>
                   <button
                     onClick={handleAdminLogout}
