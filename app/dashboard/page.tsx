@@ -1,5 +1,6 @@
 'use client'
 
+import { iconoDescarga } from '@/lib/iconos'
 import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Wrench, Users, Package, LogOut,
@@ -1005,7 +1006,7 @@ export default function DashboardPage() {
                     <div key={a.id} className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 flex flex-col gap-3">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center overflow-hidden shrink-0">
-                          {a.imagen ? <img src={a.imagen} alt="" className="w-full h-full object-contain" /> : <Download className="w-5 h-5 text-gray-400" />}
+                          {iconoDescarga(a.imagen, a.linkDescarga) ? <img src={iconoDescarga(a.imagen, a.linkDescarga)} alt="" className="w-full h-full object-contain p-1" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} /> : <Download className="w-5 h-5 text-gray-400" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">

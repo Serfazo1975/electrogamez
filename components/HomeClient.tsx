@@ -1,5 +1,6 @@
 'use client'
 
+import { iconoDescarga } from '@/lib/iconos'
 import { useState, useEffect } from 'react'
 import {
   Monitor, Gamepad2, Wrench, Shield, Clock, Star,
@@ -895,8 +896,8 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
                   {/* Header con imagen */}
                   <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-5 flex items-center gap-4 border-b border-gray-800">
                     <div className="w-14 h-14 flex-shrink-0 bg-gray-700/60 rounded-xl overflow-hidden flex items-center justify-center">
-                      {app.imagen ? (
-                        <img src={app.imagen} alt={app.titulo} className="w-full h-full object-contain p-1" onError={e => { (e.target as HTMLImageElement).src = '' }} />
+                      {iconoDescarga(app.imagen, app.linkDescarga) ? (
+                        <img src={iconoDescarga(app.imagen, app.linkDescarga)} alt={app.titulo} className="w-full h-full object-contain p-1.5" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       ) : (
                         <Package className="w-7 h-7 text-gray-500" />
                       )}
