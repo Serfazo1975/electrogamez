@@ -588,7 +588,7 @@ export default function Home({ initialApps = [], initialPrecios }: { initialApps
               <div className="absolute bottom-5 left-5 right-5">
                 <p className="text-xs font-semibold tracking-wider uppercase text-cyan-400">Más que consolas</p>
                 <h3 className="text-xl font-bold mt-1">Infraestructura y servidores</h3>
-                <p className="text-sm text-gray-400 mt-1">Redes, servidores IBM ,impresoras y sistemas críticos. Capacidad técnica de nivel empresa.</p>
+                <p className="text-sm text-gray-400 mt-1">Redes, servidores IBM, impresoras y sistemas críticos. Capacidad técnica de nivel empresa.</p>
               </div>
             </div>
           </div>
