@@ -220,6 +220,20 @@ export default function DashboardPage() {
     }
   }
 
+  // NUEVO: carga el catálogo de descargas para Windows (no borra ni duplica lo existente)
+  async function importarCatalogo() {
+    if (!confirm('¿Cargar el catálogo de descargas para Windows? No se borra ni duplica nada de lo que ya tenés.')) return
+    try {
+      const res = await fetch('/api/descargas/importar', { method: 'POST' })
+      if (!res.ok) { alert('No se pudo cargar el catálogo. Verificá que iniciaste sesión como administrador.'); return }
+      const r = await res.json()
+      await loadApps()
+      alert(`Listo: ${r.agregadas} agregadas, ${r.omitidas} ya existían.`)
+    } catch {
+      alert('No se pudo cargar el catálogo (sin conexión).')
+    }
+  }
+
   function editApp(a: AppCard) {
     setEditingApp(a)
     setAppForm({ titulo: a.titulo, descripcion: a.descripcion, imagen: a.imagen, linkDescarga: a.linkDescarga, sitioFuente: a.sitioFuente, categoria: a.categoria, destacado: a.destacado })
@@ -965,10 +979,16 @@ export default function DashboardPage() {
                 <p className="text-gray-400 text-sm max-w-xl">
                   Gestioná las apps y el software que aparecen en la sección <span className="text-gray-300">"Descargas y Novedades"</span> de la web pública.
                 </p>
-                <button onClick={() => { setEditingApp(null); setAppForm(emptyApp); setShowAppForm(true) }}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-sm font-medium transition-colors shrink-0">
-                  <Plus className="w-4 h-4" /> Agregar descarga
-                </button>
+                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                  <button onClick={importarCatalogo}
+                    className="flex items-center gap-2 border border-cyan-700 hover:border-cyan-500 text-cyan-400 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+                    <Download className="w-4 h-4" /> Cargar catálogo Windows
+                  </button>
+                  <button onClick={() => { setEditingApp(null); setAppForm(emptyApp); setShowAppForm(true) }}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-sm font-medium transition-colors shrink-0">
+                    <Plus className="w-4 h-4" /> Agregar descarga
+                  </button>
+                </div>
               </div>
 
               {apps.length === 0 ? (
